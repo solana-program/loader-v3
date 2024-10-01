@@ -871,7 +871,99 @@ fn process_extend_program(
 /// Processes a
 /// [SetAuthorityChecked](enum.LoaderV3Instruction.html)
 /// instruction.
-fn process_set_authority_checked(_program_id: &Pubkey, _accounts: &[AccountInfo]) -> ProgramResult {
+fn process_set_authority_checked(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let buffer_or_programdata_info = next_account_info(accounts_iter)?;
+    let current_authority_info = next_account_info(accounts_iter)?;
+    let new_authority_info = next_account_info(accounts_iter)?;
+
+    // Need this to avoid a double-borrow on account data.
+    enum AuthorityType {
+        Buffer,
+        ProgramData { slot: u64 },
+    }
+
+    let authority_type = match UpgradeableLoaderState::deserialize(
+        &buffer_or_programdata_info.try_borrow_data()?,
+    )? {
+        UpgradeableLoaderState::Buffer { authority_address } => {
+            if authority_address.is_none() {
+                msg!("Buffer is immutable");
+                return Err(ProgramError::Immutable);
+            }
+            if authority_address != Some(*current_authority_info.key) {
+                msg!("Incorrect buffer authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !current_authority_info.is_signer {
+                msg!("Buffer authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            if !new_authority_info.is_signer {
+                msg!("New authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            AuthorityType::Buffer
+        }
+        UpgradeableLoaderState::ProgramData {
+            upgrade_authority_address,
+            slot,
+        } => {
+            if upgrade_authority_address.is_none() {
+                msg!("Program not upgradeable");
+                return Err(ProgramError::Immutable);
+            }
+            if upgrade_authority_address != Some(*current_authority_info.key) {
+                msg!("Incorrect upgrade authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !current_authority_info.is_signer {
+                msg!("Upgrade authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            if !new_authority_info.is_signer {
+                msg!("New authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            AuthorityType::ProgramData { slot }
+        }
+        _ => {
+            msg!("Account does not support authorities");
+            return Err(ProgramError::InvalidArgument);
+        }
+    };
+
+    match authority_type {
+        AuthorityType::Buffer => {
+            // No need to zero anything, since this instruction requires the
+            // new authority to sign (cannot be `None`).
+            let mut buffer_data = buffer_or_programdata_info.try_borrow_mut_data()?;
+            bincode::serialize_into(
+                &mut buffer_data[..],
+                &UpgradeableLoaderState::Buffer {
+                    authority_address: Some(*new_authority_info.key),
+                },
+            )
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        }
+        AuthorityType::ProgramData { slot } => {
+            // No need to zero anything, since this instruction requires the
+            // new authority to sign (cannot be `None`).
+            let mut programdata_data = buffer_or_programdata_info.try_borrow_mut_data()?;
+            bincode::serialize_into(
+                &mut programdata_data[..],
+                &UpgradeableLoaderState::ProgramData {
+                    upgrade_authority_address: Some(*new_authority_info.key),
+                    slot,
+                },
+            )
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        }
+    }
+
+    msg!("New authority: {:?}", new_authority_info.key);
+
     Ok(())
 }
 
