@@ -2,7 +2,7 @@
 
 use {
     serde::{Deserialize, Serialize},
-    solana_program::pubkey::Pubkey,
+    solana_program::{program_error::ProgramError, pubkey::Pubkey},
 };
 
 /// Returns the program data address for a program ID
@@ -70,6 +70,12 @@ impl UpgradeableLoaderState {
     /// Size of a serialized programdata account.
     pub const fn size_of_programdata(program_len: usize) -> usize {
         Self::size_of_programdata_metadata().saturating_add(program_len)
+    }
+
+    /// Deserialize an `UpgradeableLoaderState` from a buffer.
+    /// Wraps `bincode::deserialize` to return a `ProgramError`.
+    pub fn deserialize(input: &[u8]) -> Result<Self, ProgramError> {
+        bincode::deserialize(input).map_err(|_| ProgramError::InvalidAccountData)
     }
 }
 
