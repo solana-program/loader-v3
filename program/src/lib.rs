@@ -6,6 +6,7 @@ mod entrypoint;
 pub mod error;
 pub mod instruction;
 pub mod processor;
+pub mod state;
 
 // [CORE BPF]: Unfortunately, the runtime still depends pretty heavily on this
 // program ID hard-coded, so we can't test with it just yet.
