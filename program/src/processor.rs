@@ -1,9 +1,12 @@
 //! Program processor.
 
 use {
-    crate::instruction::LoaderV3Instruction,
+    crate::{instruction::LoaderV3Instruction, state::UpgradeableLoaderState},
     solana_program::{
-        account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError,
+        account_info::{next_account_info, AccountInfo},
+        entrypoint::ProgramResult,
+        msg,
+        program_error::ProgramError,
         pubkey::Pubkey,
     },
 };
@@ -23,7 +26,32 @@ where
 /// Processes an
 /// [InitializeBuffer](enum.LoaderV3Instruction.html)
 /// instruction.
-fn process_initialize_buffer(_program_id: &Pubkey, _accounts: &[AccountInfo]) -> ProgramResult {
+fn process_initialize_buffer(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let source_info = next_account_info(accounts_iter)?;
+    let authority_info = next_account_info(accounts_iter)?;
+
+    // Ensure the buffer has not already been initialized.
+    {
+        let buffer_data = source_info.try_borrow_data()?;
+        if UpgradeableLoaderState::Uninitialized
+            != UpgradeableLoaderState::deserialize(&buffer_data)?
+        {
+            msg!("Buffer account already initialized");
+            return Err(ProgramError::AccountAlreadyInitialized);
+        }
+    }
+
+    let mut buffer_data = source_info.try_borrow_mut_data()?;
+    bincode::serialize_into(
+        &mut buffer_data[..],
+        &UpgradeableLoaderState::Buffer {
+            authority_address: Some(*authority_info.key),
+        },
+    )
+    .map_err(|_| ProgramError::InvalidAccountData)?;
+
     Ok(())
 }
 
