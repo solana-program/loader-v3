@@ -5,6 +5,7 @@
 //! <https://github.com/kinobi-so/kinobi>
 
 pub mod errors;
+pub mod instructions;
 pub mod programs;
 
-// pub(crate) use programs::*;
+pub(crate) use programs::*;
