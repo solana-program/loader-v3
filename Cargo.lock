@@ -3847,8 +3847,10 @@ dependencies = [
 name = "solana-loader-v3-program"
 version = "0.0.0"
 dependencies = [
+ "bincode",
  "num-derive 0.3.3",
  "num-traits",
+ "serde",
  "shank",
  "solana-program",
  "thiserror",
