@@ -605,7 +605,137 @@ fn process_set_authority(_program_id: &Pubkey, accounts: &[AccountInfo]) -> Prog
 /// Processes a
 /// [Close](enum.LoaderV3Instruction.html)
 /// instruction.
-fn process_close(_program_id: &Pubkey, _accounts: &[AccountInfo]) -> ProgramResult {
+fn process_close(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let buffer_or_programdata_info = next_account_info(accounts_iter)?;
+    let destination_info = next_account_info(accounts_iter)?;
+
+    if buffer_or_programdata_info.key == destination_info.key {
+        msg!("Recipient is the same as the account being closed");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    // Need this to avoid a double-borrow on account data.
+    // I guess it's only for a log message at this point?
+    enum AuthorityType {
+        Uninitialized,
+        Buffer,
+        ProgramData,
+    }
+
+    let authority_type = match UpgradeableLoaderState::deserialize(
+        &buffer_or_programdata_info.try_borrow_data()?,
+    )? {
+        UpgradeableLoaderState::Uninitialized => AuthorityType::Uninitialized,
+        UpgradeableLoaderState::Buffer { authority_address } => {
+            let authority_info = next_account_info(accounts_iter)?;
+            if authority_address.is_none() {
+                msg!("Account is immutable");
+                return Err(ProgramError::Immutable);
+            }
+            if authority_address != Some(*authority_info.key) {
+                msg!("Incorrect authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !authority_info.is_signer {
+                msg!("Authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+
+            AuthorityType::Buffer
+        }
+        UpgradeableLoaderState::ProgramData {
+            slot,
+            upgrade_authority_address,
+        } => {
+            let authority_info = next_account_info(accounts_iter)?;
+            let program_info = next_account_info(accounts_iter)?;
+
+            if !program_info.is_writable {
+                msg!("Program account is not writable");
+                return Err(ProgramError::InvalidArgument);
+            }
+            if program_info.owner != program_id {
+                msg!("Program account not owned by loader");
+                return Err(ProgramError::IncorrectProgramId);
+            }
+
+            let clock = <Clock as Sysvar>::get()?;
+            if clock.slot == slot {
+                msg!("Program was deployed in this block already");
+                return Err(ProgramError::InvalidArgument);
+            }
+
+            match UpgradeableLoaderState::deserialize(&program_info.try_borrow_data()?)? {
+                UpgradeableLoaderState::Program {
+                    programdata_address,
+                } => {
+                    if programdata_address != *buffer_or_programdata_info.key {
+                        msg!("ProgramData account does not match ProgramData account");
+                        return Err(ProgramError::InvalidArgument);
+                    }
+
+                    if upgrade_authority_address.is_none() {
+                        msg!("Account is immutable");
+                        return Err(ProgramError::Immutable);
+                    }
+                    if upgrade_authority_address != Some(*authority_info.key) {
+                        msg!("Incorrect authority provided");
+                        return Err(ProgramError::IncorrectAuthority);
+                    }
+                    if !authority_info.is_signer {
+                        msg!("Authority did not sign");
+                        return Err(ProgramError::MissingRequiredSignature);
+                    }
+                }
+                _ => {
+                    msg!("Invalid Program account");
+                    return Err(ProgramError::InvalidArgument);
+                }
+            }
+
+            AuthorityType::ProgramData
+        }
+        _ => {
+            msg!("Account does not support closing");
+            return Err(ProgramError::InvalidArgument);
+        }
+    };
+
+    {
+        let new_destination_lamports = destination_info
+            .lamports()
+            .checked_add(buffer_or_programdata_info.lamports())
+            .ok_or::<ProgramError>(ProgramError::ArithmeticOverflow)?;
+
+        **buffer_or_programdata_info.try_borrow_mut_lamports()? = 0;
+        **destination_info.try_borrow_mut_lamports()? = new_destination_lamports;
+    }
+
+    buffer_or_programdata_info.realloc(UpgradeableLoaderState::size_of_uninitialized(), true)?;
+
+    let mut buffer_or_programdata_data = buffer_or_programdata_info.try_borrow_mut_data()?;
+    bincode::serialize_into(
+        &mut buffer_or_programdata_data[..],
+        &UpgradeableLoaderState::Uninitialized,
+    )
+    .map_err(|_| ProgramError::InvalidAccountData)?;
+
+    // [CORE BPF]: Store modified entry in program cache.
+
+    match authority_type {
+        AuthorityType::Uninitialized => {
+            msg!("Closed Uninitialized {}", buffer_or_programdata_info.key);
+        }
+        AuthorityType::Buffer => {
+            msg!("Closed Buffer {}", buffer_or_programdata_info.key);
+        }
+        AuthorityType::ProgramData => {
+            msg!("Closed Program {}", buffer_or_programdata_info.key);
+        }
+    }
+
     Ok(())
 }
 
