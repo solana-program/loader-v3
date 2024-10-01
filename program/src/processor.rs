@@ -310,7 +310,184 @@ fn process_deploy_with_max_data_len(
 /// Processes an
 /// [Upgrade](enum.LoaderV3Instruction.html)
 /// instruction.
-fn process_upgrade(_program_id: &Pubkey, _accounts: &[AccountInfo]) -> ProgramResult {
+fn process_upgrade(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let programdata_info = next_account_info(accounts_iter)?;
+    let program_info = next_account_info(accounts_iter)?;
+    let buffer_info = next_account_info(accounts_iter)?;
+    let spill_info = next_account_info(accounts_iter)?;
+    let rent_info = next_account_info(accounts_iter)?;
+    let clock_info = next_account_info(accounts_iter)?;
+    let authority_info = next_account_info(accounts_iter)?;
+
+    let rent = <Rent as Sysvar>::from_account_info(rent_info)?;
+    let clock = <Clock as Sysvar>::from_account_info(clock_info)?;
+
+    // Verify Program account.
+    if !program_info.executable {
+        msg!("Program account not executable");
+        return Err(ProgramError::InvalidAccountData); // [CORE BPF]: Error code changed.
+    }
+    if !program_info.is_writable {
+        msg!("Program account not writable");
+        return Err(ProgramError::InvalidArgument);
+    }
+    if program_info.owner != program_id {
+        msg!("Program account not owned by loader");
+        return Err(ProgramError::IncorrectProgramId);
+    }
+    {
+        let program_data = program_info.try_borrow_data()?;
+        if let UpgradeableLoaderState::Program {
+            programdata_address,
+        } = UpgradeableLoaderState::deserialize(&program_data)?
+        {
+            if programdata_address != *programdata_info.key {
+                msg!("Program and ProgramData account mismatch");
+                return Err(ProgramError::InvalidArgument);
+            }
+        } else {
+            msg!("Invalid Program account");
+            return Err(ProgramError::InvalidAccountData);
+        }
+    }
+
+    // Verify Buffer account.
+    {
+        let buffer_data = buffer_info.try_borrow_data()?;
+        if let UpgradeableLoaderState::Buffer { authority_address } =
+            UpgradeableLoaderState::deserialize(&buffer_data)?
+        {
+            if authority_address != Some(*authority_info.key) {
+                msg!("Buffer and upgrade authority don't match");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !authority_info.is_signer {
+                msg!("Upgrade authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+        } else {
+            msg!("Invalid Buffer account");
+            return Err(ProgramError::InvalidArgument);
+        }
+    }
+    let buffer_lamports = buffer_info.lamports();
+    let buffer_data_offset = UpgradeableLoaderState::size_of_buffer_metadata();
+    let buffer_data_len = buffer_info.data_len().saturating_sub(buffer_data_offset);
+    if buffer_info.data_len() < UpgradeableLoaderState::size_of_buffer_metadata()
+        || buffer_data_len == 0
+    {
+        msg!("Buffer account too small");
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    // Verify ProgramData account.
+    let programdata_data_offset = UpgradeableLoaderState::size_of_programdata_metadata();
+    let programdata_balance_required = 1.max(rent.minimum_balance(programdata_info.data_len()));
+    if programdata_info.data_len() < UpgradeableLoaderState::size_of_programdata(buffer_data_len) {
+        msg!("ProgramData account not large enough");
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+    if programdata_info.lamports().saturating_add(buffer_lamports) < programdata_balance_required {
+        msg!("Buffer account balance too low to fund upgrade");
+        return Err(ProgramError::InsufficientFunds);
+    }
+    {
+        let programdata_data = programdata_info.try_borrow_data()?;
+        if let UpgradeableLoaderState::ProgramData {
+            slot,
+            upgrade_authority_address,
+        } = UpgradeableLoaderState::deserialize(&programdata_data)?
+        {
+            if clock.slot == slot {
+                msg!("Program was deployed in this block already");
+                return Err(ProgramError::InvalidArgument);
+            }
+            if upgrade_authority_address.is_none() {
+                msg!("Program not upgradeable");
+                return Err(ProgramError::Immutable);
+            }
+            if upgrade_authority_address != Some(*authority_info.key) {
+                msg!("Incorrect upgrade authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !authority_info.is_signer {
+                msg!("Upgrade authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+        } else {
+            msg!("Invalid ProgramData account");
+            return Err(ProgramError::InvalidAccountData);
+        }
+    }
+
+    // Load and verify the program bits.
+    // [CORE BPF]: We'll see what happens with on-chain verification...
+    // Something like this would be nice:
+    // invoke(
+    //     &solana_bpf_verify_program::instruction::verify(buffer_info.key),
+    //     &[buffer_info.clone()],
+    // )?;
+
+    // Update the ProgramData account, record the upgraded data, and zero the
+    // rest.
+    {
+        let mut programdata_data = programdata_info.try_borrow_mut_data()?;
+
+        // First serialize the ProgramData header.
+        bincode::serialize_into(
+            &mut programdata_data[..],
+            &UpgradeableLoaderState::ProgramData {
+                slot: clock.slot,
+                upgrade_authority_address: Some(*authority_info.key),
+            },
+        )
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+
+        // Then copy the program bits.
+        {
+            let buffer_data = buffer_info.try_borrow_data()?;
+            let elf_bits = buffer_data
+                .get(buffer_data_offset..)
+                .ok_or(ProgramError::AccountDataTooSmall)?;
+            programdata_data
+                .get_mut(programdata_data_offset..)
+                .ok_or(ProgramError::AccountDataTooSmall)?
+                .copy_from_slice(elf_bits);
+        }
+
+        // Zero the rest.
+        programdata_data
+            .get_mut(programdata_data_offset.saturating_add(buffer_data_len)..)
+            .ok_or(ProgramError::AccountDataTooSmall)?
+            .fill(0);
+
+        // Clear the buffer.
+        buffer_info.realloc(UpgradeableLoaderState::size_of_buffer(0), false)?;
+    }
+
+    // Fund ProgramData to rent-exemption, spill the rest.
+    {
+        let new_spill_lamports = spill_info
+            .lamports()
+            .checked_add(
+                programdata_info
+                    .lamports()
+                    .saturating_add(buffer_lamports)
+                    .saturating_sub(programdata_balance_required),
+            )
+            .ok_or::<ProgramError>(ProgramError::ArithmeticOverflow)?;
+
+        **buffer_info.try_borrow_mut_lamports()? = 0;
+        **spill_info.try_borrow_mut_lamports()? = new_spill_lamports;
+        **programdata_info.try_borrow_mut_lamports()? = programdata_balance_required;
+    }
+
+    // [CORE BPF]: Store modified entry in program cache.
+
+    msg!("Upgraded program: {}", program_info.key);
+
     Ok(())
 }
 
