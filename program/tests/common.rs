@@ -4,11 +4,15 @@
 use {
     mollusk_svm::Mollusk,
     solana_loader_v3_program::state::UpgradeableLoaderState,
-    solana_sdk::{account::AccountSharedData, rent::Rent},
+    solana_sdk::{account::AccountSharedData, rent::Rent, system_program},
 };
 
 pub fn setup() -> Mollusk {
     Mollusk::new(&solana_loader_v3_program::id(), "solana_loader_v3_program")
+}
+
+pub fn system_account_with_lamports(lamports: u64) -> AccountSharedData {
+    AccountSharedData::new(lamports, 0, &system_program::id())
 }
 
 pub fn upgradeable_state_account(
