@@ -11,7 +11,7 @@ use {
         entrypoint::ProgramResult,
         instruction::AccountMeta,
         msg,
-        program::invoke_signed,
+        program::{invoke, invoke_signed},
         program_error::ProgramError,
         pubkey::Pubkey,
         rent::Rent,
@@ -743,10 +743,128 @@ fn process_close(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
 /// [ExtendProgram](enum.LoaderV3Instruction.html)
 /// instruction.
 fn process_extend_program(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
-    _additional_bytes: u32,
+    program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    additional_bytes: u32,
 ) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let programdata_info = next_account_info(accounts_iter)?;
+    let program_info = next_account_info(accounts_iter)?;
+
+    if programdata_info.owner != program_id {
+        msg!("ProgramData owner is invalid");
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+    if !programdata_info.is_writable {
+        msg!("ProgramData is not writable");
+        return Err(ProgramError::InvalidArgument);
+    }
+
+    if !program_info.is_writable {
+        msg!("Program account is not writable");
+        return Err(ProgramError::InvalidArgument);
+    }
+    if program_info.owner != program_id {
+        msg!("Program account not owned by loader");
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+
+    match UpgradeableLoaderState::deserialize(&program_info.try_borrow_data()?)? {
+        UpgradeableLoaderState::Program {
+            programdata_address,
+        } => {
+            if programdata_address != *programdata_info.key {
+                msg!("Program account does not match ProgramData account");
+                return Err(ProgramError::InvalidArgument);
+            }
+        }
+        _ => {
+            msg!("Invalid Program account");
+            return Err(ProgramError::InvalidAccountData);
+        }
+    }
+
+    let old_len = programdata_info.data_len();
+    let new_len = old_len.saturating_add(additional_bytes as usize);
+    if new_len > MAX_PERMITTED_DATA_LENGTH as usize {
+        msg!(
+            "Extended ProgramData length of {} bytes exceeds max account data length of {} bytes",
+            new_len,
+            MAX_PERMITTED_DATA_LENGTH
+        );
+        return Err(ProgramError::InvalidRealloc);
+    }
+
+    let clock = <Clock as Sysvar>::get()?;
+    let clock_slot = clock.slot;
+
+    let upgrade_authority_address = if let UpgradeableLoaderState::ProgramData {
+        slot,
+        upgrade_authority_address,
+    } =
+        UpgradeableLoaderState::deserialize(&programdata_info.try_borrow_data()?)?
+    {
+        if clock_slot == slot {
+            msg!("Program was extended in this block already");
+            return Err(ProgramError::InvalidArgument);
+        }
+
+        if upgrade_authority_address.is_none() {
+            msg!("Cannot extend ProgramData accounts that are not upgradeable");
+            return Err(ProgramError::Immutable);
+        }
+        upgrade_authority_address
+    } else {
+        msg!("ProgramData state is invalid");
+        return Err(ProgramError::InvalidAccountData);
+    };
+
+    let required_payment = {
+        let balance = programdata_info.lamports();
+        let rent = <Rent as Sysvar>::get()?;
+        let min_balance = rent.minimum_balance(new_len).max(1);
+        min_balance.saturating_sub(balance)
+    };
+
+    if required_payment > 0 {
+        let system_program_info = next_account_info(accounts_iter)?;
+        let payer_info = next_account_info(accounts_iter)?;
+        invoke(
+            &system_instruction::transfer(payer_info.key, programdata_info.key, required_payment),
+            &[
+                payer_info.clone(),
+                programdata_info.clone(),
+                system_program_info.clone(),
+            ],
+        )?;
+    }
+
+    // [CORE BPF]: BPF programs can only reallocate a maximum of 10_240 bytes.
+    // See https://github.com/anza-xyz/agave/blob/ed51e70c2e6528f602ad4f8fde718f60d7da2d0c/sdk/account-info/src/lib.rs#L16-L17
+    programdata_info.realloc(new_len, true)?;
+
+    // [CORE BPF]: We'll see what happens with on-chain verification...
+    // Something like this would be nice:
+    // invoke(
+    //     &solana_bpf_verify_program::instruction::verify(programdata_info.key),
+    //     &[buffer_info.clone()],
+    // )?;
+
+    let mut programdata_data = programdata_info.try_borrow_mut_data()?;
+    bincode::serialize_into(
+        &mut programdata_data[..],
+        &UpgradeableLoaderState::ProgramData {
+            slot: clock_slot,
+            upgrade_authority_address,
+        },
+    )
+    .map_err(|_| ProgramError::InvalidAccountData)?;
+
+    // [CORE BPF]: Store modified entry in program cache.
+
+    msg!("Extended ProgramData account by {} bytes", additional_bytes);
+
     Ok(())
 }
 
