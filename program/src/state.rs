@@ -7,7 +7,10 @@ use {
 
 /// Returns the program data address for a program ID
 pub fn get_program_data_address(program_address: &Pubkey) -> Pubkey {
-    Pubkey::find_program_address(&[program_address.as_ref()], &crate::id()).0
+    get_program_data_address_and_bump_seed(program_address).0
+}
+pub fn get_program_data_address_and_bump_seed(program_address: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[program_address.as_ref()], &crate::id())
 }
 
 /// Upgradeable loader account states.
