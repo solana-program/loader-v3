@@ -29,6 +29,7 @@ fn fail_buffer_already_initialized() {
                         authority_address: Some(authority),
                     },
                     &[],
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),

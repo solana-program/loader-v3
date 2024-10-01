@@ -4,7 +4,11 @@
 use {
     mollusk_svm::Mollusk,
     solana_loader_v3_program::state::UpgradeableLoaderState,
-    solana_sdk::{account::AccountSharedData, rent::Rent, system_program},
+    solana_sdk::{
+        account::{AccountSharedData, WritableAccount},
+        rent::Rent,
+        system_program,
+    },
 };
 
 pub fn setup() -> Mollusk {
@@ -18,6 +22,7 @@ pub fn system_account_with_lamports(lamports: u64) -> AccountSharedData {
 pub fn upgradeable_state_account(
     state: &UpgradeableLoaderState,
     additional_bytes: &[u8],
+    executable: bool,
 ) -> AccountSharedData {
     // Annoying, but necessary because of the program's layout expectations.
     let data_size = match state {
@@ -38,6 +43,8 @@ pub fn upgradeable_state_account(
 
     let mut account = AccountSharedData::new(lamports, space, &solana_loader_v3_program::id());
     account.set_data_from_slice(&data);
+
+    account.set_executable(executable);
 
     account
 }
