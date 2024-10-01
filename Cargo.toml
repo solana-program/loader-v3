@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = ["clients/rust", "program"]
+
+[workspace.metadata.cli]
+solana = "2.0.2"
+
+[workspace.metadata.toolchains]
+format = "nightly-2023-10-05"
+lint = "nightly-2023-10-05"
