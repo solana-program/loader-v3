@@ -494,7 +494,111 @@ fn process_upgrade(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResu
 /// Processes a
 /// [SetAuthority](enum.LoaderV3Instruction.html)
 /// instruction.
-fn process_set_authority(_program_id: &Pubkey, _accounts: &[AccountInfo]) -> ProgramResult {
+fn process_set_authority(_program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let buffer_or_programdata_info = next_account_info(accounts_iter)?;
+    let current_authority_info = next_account_info(accounts_iter)?;
+    let new_authority_info = next_account_info(accounts_iter).ok();
+
+    // Need this to avoid a double-borrow on account data.
+    enum AuthorityType {
+        Buffer,
+        ProgramData { slot: u64 },
+    }
+
+    let authority_type = match UpgradeableLoaderState::deserialize(
+        &buffer_or_programdata_info.try_borrow_data()?,
+    )? {
+        UpgradeableLoaderState::Buffer { authority_address } => {
+            if new_authority_info.is_none() {
+                msg!("Buffer authority is not optional");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if authority_address.is_none() {
+                msg!("Buffer is immutable");
+                return Err(ProgramError::Immutable);
+            }
+            if authority_address != Some(*current_authority_info.key) {
+                msg!("Incorrect buffer authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !current_authority_info.is_signer {
+                msg!("Buffer authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            AuthorityType::Buffer
+        }
+        UpgradeableLoaderState::ProgramData {
+            upgrade_authority_address,
+            slot,
+        } => {
+            if upgrade_authority_address.is_none() {
+                msg!("ProgramData is not upgradeable");
+                return Err(ProgramError::Immutable);
+            }
+            if upgrade_authority_address != Some(*current_authority_info.key) {
+                msg!("Incorrect upgrade authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !current_authority_info.is_signer {
+                msg!("Upgrade authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+            AuthorityType::ProgramData { slot }
+        }
+        _ => {
+            msg!("Account does not support authorities");
+            return Err(ProgramError::InvalidArgument);
+        }
+    };
+
+    match authority_type {
+        AuthorityType::Buffer => {
+            // This looks silly, but `bincode::serialize_into` will serialize 4
+            // bytes for `None` and then stop, leaving the rest of the buffer
+            // untouched.
+            let mut buffer_data = buffer_or_programdata_info.try_borrow_mut_data()?;
+            let buffer_metadata_offset = UpgradeableLoaderState::size_of_buffer_metadata();
+            buffer_data
+                .get_mut(..buffer_metadata_offset)
+                .ok_or(ProgramError::AccountDataTooSmall)?
+                .fill(0);
+            bincode::serialize_into(
+                &mut buffer_data[..],
+                &UpgradeableLoaderState::Buffer {
+                    authority_address: new_authority_info.map(|info| *info.key),
+                },
+            )
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        }
+        AuthorityType::ProgramData { slot } => {
+            // This looks silly, but `bincode::serialize_into` will serialize 4
+            // bytes for `None` and then stop, leaving the rest of the buffer
+            // untouched.
+            let mut programdata_data = buffer_or_programdata_info.try_borrow_mut_data()?;
+            let programdata_metadata_offset =
+                UpgradeableLoaderState::size_of_programdata_metadata();
+            programdata_data
+                .get_mut(..programdata_metadata_offset)
+                .ok_or(ProgramError::AccountDataTooSmall)?
+                .fill(0);
+            bincode::serialize_into(
+                &mut programdata_data[..],
+                &UpgradeableLoaderState::ProgramData {
+                    upgrade_authority_address: new_authority_info.map(|info| *info.key),
+                    slot,
+                },
+            )
+            .map_err(|_| ProgramError::InvalidAccountData)?;
+        }
+    }
+
+    msg!(
+        "New authority: {:?}",
+        new_authority_info.map(|info| info.key)
+    );
+
     Ok(())
 }
 
