@@ -9,6 +9,7 @@ use {
         account_info::{next_account_info, AccountInfo},
         clock::Clock,
         entrypoint::ProgramResult,
+        instruction::AccountMeta,
         msg,
         program::invoke_signed,
         program_error::ProgramError,
@@ -222,18 +223,26 @@ fn process_deploy_with_max_data_len(
         **payer_info.try_borrow_mut_lamports()? = new_payer_lamports;
     }
 
+    // Pass an extra account to avoid the overly strict UnbalancedInstruction
+    // error.
+    let mut instruction = system_instruction::create_account(
+        payer_info.key,
+        programdata_info.key,
+        1.max(rent.minimum_balance(programdata_len)),
+        programdata_len as u64,
+        program_id,
+    );
+    instruction
+        .accounts
+        .push(AccountMeta::new(*buffer_info.key, false));
+
     invoke_signed(
-        &system_instruction::create_account(
-            payer_info.key,
-            programdata_info.key,
-            1.max(rent.minimum_balance(programdata_len)),
-            programdata_len as u64,
-            program_id,
-        ),
+        &instruction,
         &[
             payer_info.clone(),
             programdata_info.clone(),
             system_program_info.clone(),
+            buffer_info.clone(),
         ],
         &[&[program_info.key.as_ref(), &[bump_seed]]],
     )?;
@@ -266,8 +275,9 @@ fn process_deploy_with_max_data_len(
             let elf_bits = buffer_data
                 .get(buffer_data_offset..)
                 .ok_or(ProgramError::AccountDataTooSmall)?;
+            let programdata_elf_end = UpgradeableLoaderState::size_of_programdata(elf_bits.len());
             programdata_data
-                .get_mut(programdata_data_offset..)
+                .get_mut(programdata_data_offset..programdata_elf_end)
                 .ok_or(ProgramError::AccountDataTooSmall)?
                 .copy_from_slice(elf_bits);
         }
