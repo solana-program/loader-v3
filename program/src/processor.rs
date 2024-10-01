@@ -60,10 +60,59 @@ fn process_initialize_buffer(_program_id: &Pubkey, accounts: &[AccountInfo]) -> 
 /// instruction.
 fn process_write(
     _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
-    _offset: u32,
-    _bytes: Vec<u8>,
+    accounts: &[AccountInfo],
+    offset: u32,
+    bytes: Vec<u8>,
 ) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+
+    let buffer_info = next_account_info(accounts_iter)?;
+    let authority_info = next_account_info(accounts_iter)?;
+
+    // Run checks on the authority.
+    {
+        let buffer_data = buffer_info.try_borrow_data()?;
+        if let UpgradeableLoaderState::Buffer { authority_address } =
+            UpgradeableLoaderState::deserialize(&buffer_data)?
+        {
+            if authority_address.is_none() {
+                msg!("Buffer is immutable");
+                return Err(ProgramError::Immutable);
+            }
+            if authority_address != Some(*authority_info.key) {
+                msg!("Incorrect buffer authority provided");
+                return Err(ProgramError::IncorrectAuthority);
+            }
+            if !authority_info.is_signer {
+                msg!("Buffer authority did not sign");
+                return Err(ProgramError::MissingRequiredSignature);
+            }
+        } else {
+            msg!("Invalid Buffer account");
+            return Err(ProgramError::InvalidAccountData);
+        }
+    }
+
+    // Ensure the buffer account is large enough.
+    let programdata_offset =
+        UpgradeableLoaderState::size_of_buffer_metadata().saturating_add(offset as usize);
+    let end_offset = programdata_offset.saturating_add(bytes.len());
+    if buffer_info.data_len() < end_offset {
+        msg!(
+            "Write overflow: {} < {}",
+            buffer_info.data_len(),
+            end_offset
+        );
+        return Err(ProgramError::AccountDataTooSmall);
+    }
+
+    // Write the data.
+    buffer_info
+        .try_borrow_mut_data()?
+        .get_mut(programdata_offset..end_offset)
+        .ok_or(ProgramError::AccountDataTooSmall)?
+        .copy_from_slice(&bytes);
+
     Ok(())
 }
 
