@@ -4,6 +4,7 @@
 #[cfg(all(target_os = "solana", feature = "bpf-entrypoint"))]
 mod entrypoint;
 pub mod error;
+pub mod instruction;
 pub mod processor;
 
 // [CORE BPF]: Unfortunately, the runtime still depends pretty heavily on this
