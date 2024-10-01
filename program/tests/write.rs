@@ -33,6 +33,7 @@ fn fail_invalid_buffer_state() {
                         upgrade_authority_address: Some(Pubkey::new_unique()),
                     },
                     &[],
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),
@@ -58,6 +59,7 @@ fn fail_immutable_buffer() {
                         authority_address: None, // Immutable.
                     },
                     &[],
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),
@@ -83,6 +85,7 @@ fn fail_incorrect_buffer_authority() {
                         authority_address: Some(Pubkey::new_unique()), // Incorrect authority.
                     },
                     &[],
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),
@@ -111,6 +114,7 @@ fn fail_buffer_authority_not_signer() {
                         authority_address: Some(authority),
                     },
                     &[],
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),
@@ -136,6 +140,7 @@ fn fail_buffer_too_small() {
                         authority_address: Some(authority),
                     },
                     &[], // Too small.
+                    false,
                 ),
             ),
             (authority, AccountSharedData::default()),
@@ -156,7 +161,7 @@ fn fail_buffer_account_not_owned_by_loader() {
     };
     let uninitialized_data = &[0; 36];
 
-    let mut buffer_account = upgradeable_state_account(&state, uninitialized_data);
+    let mut buffer_account = upgradeable_state_account(&state, uninitialized_data, false);
     buffer_account.set_owner(Pubkey::new_unique()); // Not owned by the loader.
 
     mollusk.process_and_validate_instruction(
@@ -198,7 +203,7 @@ fn success() {
         &[
             (
                 buffer,
-                upgradeable_state_account(&state, uninitialized_data),
+                upgradeable_state_account(&state, uninitialized_data, false),
             ),
             (authority, AccountSharedData::default()),
         ],
