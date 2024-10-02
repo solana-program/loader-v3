@@ -209,6 +209,7 @@ fn success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(1_425),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );
@@ -227,6 +228,7 @@ fn success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(1_397),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );
