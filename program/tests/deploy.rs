@@ -619,7 +619,7 @@ fn success() {
     let mollusk = setup();
 
     let payer = Pubkey::new_unique();
-    let program = Pubkey::new_unique();
+    let program = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
     let buffer = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
 
@@ -670,6 +670,7 @@ fn success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(21_855),
             Check::account(&program)
                 .data(
                     &bincode::serialize(&UpgradeableLoaderState::Program {

@@ -172,7 +172,7 @@ fn buffer_success() {
 
     let buffer = Pubkey::new_unique();
     let current_authority = Pubkey::new_unique();
-    let new_authority = Pubkey::new_unique();
+    let new_authority = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
 
     let elf = &[3; 5_000];
 
@@ -205,6 +205,7 @@ fn buffer_success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(14_121),
             Check::account(&buffer)
                 .data(
                     &check_data(Some(new_authority)), // Updated.
@@ -350,7 +351,7 @@ fn programdata_success() {
 
     let programdata = Pubkey::new_unique();
     let current_authority = Pubkey::new_unique();
-    let new_authority = Pubkey::new_unique();
+    let new_authority = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
 
     let elf = &[3; 5_000];
 
@@ -387,6 +388,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(14_102),
             Check::account(&programdata)
                 .data(
                     &check_data(Some(new_authority)), // Updated.

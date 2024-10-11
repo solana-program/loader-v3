@@ -186,7 +186,7 @@ fn buffer_fail_authority_not_signer() {
 fn buffer_success() {
     let mollusk = setup();
 
-    let buffer = Pubkey::new_unique();
+    let buffer = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
     let destination = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
 
@@ -213,6 +213,7 @@ fn buffer_success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(12_793),
             // Closed, but still owned by the loader.
             Check::account(&buffer)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.
@@ -433,9 +434,7 @@ fn programdata_fail_incorrect_authority() {
                 ),
             ),
         ],
-        &[
-            Check::err(ProgramError::IncorrectAuthority),
-        ],
+        &[Check::err(ProgramError::IncorrectAuthority)],
     );
 }
 
@@ -491,7 +490,7 @@ fn programdata_success() {
 
     let destination = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
-    let program = Pubkey::new_unique();
+    let program = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
 
     let programdata = get_program_data_address(&program);
 
@@ -529,6 +528,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(14_432),
             // Closed, but still owned by the loader.
             Check::account(&programdata)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.

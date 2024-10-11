@@ -848,7 +848,7 @@ fn success() {
     let mut mollusk = setup();
     mollusk.warp_to_slot(2); // To move past deployment slot.
 
-    let program = Pubkey::new_unique();
+    let program = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
     let buffer = Pubkey::new_unique();
     let spill = Pubkey::new_unique();
     let authority = Pubkey::new_unique();
@@ -899,6 +899,7 @@ fn success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(16_664),
             Check::account(&program)
                 .data(
                     &bincode::serialize(&UpgradeableLoaderState::Program {

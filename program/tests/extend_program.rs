@@ -559,7 +559,7 @@ fn success() {
     let mut mollusk = setup();
     mollusk.warp_to_slot(2); // To move past deployment slot.
 
-    let program = Pubkey::new_unique();
+    let program = Pubkey::new_from_array([1; 32]); // Consistent CUs when logging.
     let payer = Pubkey::new_unique();
 
     let programdata = get_program_data_address(&program);
@@ -613,6 +613,7 @@ fn success() {
         ],
         &[
             Check::success(),
+            Check::compute_units(7_006),
             Check::account(&programdata)
                 .lamports(new_rent_exemption)
                 .space(new_size)
