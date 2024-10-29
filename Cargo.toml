@@ -6,5 +6,5 @@ members = ["clients/rust", "program"]
 solana = "2.0.2"
 
 [workspace.metadata.toolchains]
-format = "nightly-2023-10-05"
-lint = "nightly-2023-10-05"
+format = "nightly-2024-05-02"
+lint = "nightly-2024-05-02"

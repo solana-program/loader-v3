@@ -213,7 +213,7 @@ fn buffer_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(12_793),
+            Check::compute_units(12_792),
             // Closed, but still owned by the loader.
             Check::account(&buffer)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.
@@ -528,7 +528,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(14_432),
+            Check::compute_units(14_431),
             // Closed, but still owned by the loader.
             Check::account(&programdata)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.

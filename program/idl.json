@@ -371,13 +371,6 @@
       }
     }
   ],
-  "errors": [
-    {
-      "code": 0,
-      "name": "Placeholder",
-      "msg": "This is a placeholder error"
-    }
-  ],
   "metadata": {
     "origin": "shank",
     "address": "CoreBPFLoaderUpgradeab1e1111111111111111111",

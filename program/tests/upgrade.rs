@@ -899,7 +899,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(16_664),
+            Check::compute_units(16_663),
             Check::account(&program)
                 .data(
                     &bincode::serialize(&UpgradeableLoaderState::Program {
