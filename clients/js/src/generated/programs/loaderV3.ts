@@ -24,7 +24,7 @@ import {
 } from '../instructions';
 
 export const LOADER_V3_PROGRAM_ADDRESS =
-  'CoreBPFLoaderUpgradeab1e1111111111111111111' as Address<'CoreBPFLoaderUpgradeab1e1111111111111111111'>;
+  'BPFLoaderUpgradeab1e11111111111111111111111' as Address<'BPFLoaderUpgradeab1e11111111111111111111111'>;
 
 export enum LoaderV3Instruction {
   InitializeBuffer,
@@ -71,7 +71,7 @@ export function identifyLoaderV3Instruction(
 }
 
 export type ParsedLoaderV3Instruction<
-  TProgram extends string = 'CoreBPFLoaderUpgradeab1e1111111111111111111',
+  TProgram extends string = 'BPFLoaderUpgradeab1e11111111111111111111111',
 > =
   | ({
       instructionType: LoaderV3Instruction.InitializeBuffer;

@@ -15,7 +15,10 @@ const ciDir = path.join(__dirname, "..", "ci");
 // Update programs.
 kinobi.update(
   k.updateProgramsVisitor({
-    "solanaLoaderV3Program": { name: "loaderV3" },
+    solanaLoaderV3Program: {
+      name: "loaderV3",
+      publicKey: "BPFLoaderUpgradeab1e11111111111111111111111",
+    },
   })
 );
 
