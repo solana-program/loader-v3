@@ -10,8 +10,8 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
-  getU8Decoder,
-  getU8Encoder,
+  getU32Decoder,
+  getU32Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -33,7 +33,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const UPGRADE_DISCRIMINATOR = 3;
 
 export function getUpgradeDiscriminatorBytes() {
-  return getU8Encoder().encode(UPGRADE_DISCRIMINATOR);
+  return getU32Encoder().encode(UPGRADE_DISCRIMINATOR);
 }
 
 export type UpgradeInstruction<
@@ -86,13 +86,13 @@ export type UpgradeInstructionDataArgs = {};
 
 export function getUpgradeInstructionDataEncoder(): Encoder<UpgradeInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([['discriminator', getU8Encoder()]]),
+    getStructEncoder([['discriminator', getU32Encoder()]]),
     (value) => ({ ...value, discriminator: UPGRADE_DISCRIMINATOR })
   );
 }
 
 export function getUpgradeInstructionDataDecoder(): Decoder<UpgradeInstructionData> {
-  return getStructDecoder([['discriminator', getU8Decoder()]]);
+  return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getUpgradeInstructionDataCodec(): Codec<

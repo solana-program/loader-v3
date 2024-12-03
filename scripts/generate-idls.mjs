@@ -15,6 +15,16 @@ getProgramFolders().forEach((folder) => {
     programName: cargo.package.name.replace(/-/g, '_'),
     programId: cargo.package.metadata.solana['program-id'],
     idlDir: programDir,
+    idlHook: (idl) => ({
+      ...idl,
+      instructions: idl.instructions.map((instruction) => ({
+        ...instruction,
+        discriminant: {
+          ...instruction.discriminant,
+          type: "u32", // The legacy native program only accepts 4-byte instruction discriminants.
+        },
+      })),
+    }),
     idlName: 'idl',
     programDir,
     binaryInstallDir,

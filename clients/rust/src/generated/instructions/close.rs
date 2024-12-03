@@ -70,7 +70,7 @@ impl Close {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct CloseInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl CloseInstructionData {

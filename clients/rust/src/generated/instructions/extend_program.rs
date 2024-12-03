@@ -74,7 +74,7 @@ impl ExtendProgram {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct ExtendProgramInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl ExtendProgramInstructionData {

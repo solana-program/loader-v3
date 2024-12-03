@@ -51,7 +51,7 @@ impl Write {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct WriteInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl WriteInstructionData {

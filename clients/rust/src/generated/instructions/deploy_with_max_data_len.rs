@@ -89,7 +89,7 @@ impl DeployWithMaxDataLen {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct DeployWithMaxDataLenInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl DeployWithMaxDataLenInstructionData {

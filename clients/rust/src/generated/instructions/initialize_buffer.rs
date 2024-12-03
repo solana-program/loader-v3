@@ -45,7 +45,7 @@ impl InitializeBuffer {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct InitializeBufferInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl InitializeBufferInstructionData {
