@@ -10,8 +10,8 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
-  getU8Decoder,
-  getU8Encoder,
+  getU32Decoder,
+  getU32Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -33,7 +33,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const CLOSE_DISCRIMINATOR = 5;
 
 export function getCloseDiscriminatorBytes() {
-  return getU8Encoder().encode(CLOSE_DISCRIMINATOR);
+  return getU32Encoder().encode(CLOSE_DISCRIMINATOR);
 }
 
 export type CloseInstruction<
@@ -72,13 +72,13 @@ export type CloseInstructionDataArgs = {};
 
 export function getCloseInstructionDataEncoder(): Encoder<CloseInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([['discriminator', getU8Encoder()]]),
+    getStructEncoder([['discriminator', getU32Encoder()]]),
     (value) => ({ ...value, discriminator: CLOSE_DISCRIMINATOR })
   );
 }
 
 export function getCloseInstructionDataDecoder(): Decoder<CloseInstructionData> {
-  return getStructDecoder([['discriminator', getU8Decoder()]]);
+  return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getCloseInstructionDataCodec(): Codec<

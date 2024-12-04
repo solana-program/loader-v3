@@ -53,7 +53,7 @@ impl SetAuthorityChecked {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct SetAuthorityCheckedInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl SetAuthorityCheckedInstructionData {

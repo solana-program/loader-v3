@@ -75,7 +75,7 @@ impl Upgrade {
 
 #[derive(BorshDeserialize, BorshSerialize)]
 pub struct UpgradeInstructionData {
-    discriminator: u8,
+    discriminator: u32,
 }
 
 impl UpgradeInstructionData {

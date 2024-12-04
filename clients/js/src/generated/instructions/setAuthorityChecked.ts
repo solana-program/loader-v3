@@ -10,8 +10,8 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
-  getU8Decoder,
-  getU8Encoder,
+  getU32Decoder,
+  getU32Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -32,7 +32,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const SET_AUTHORITY_CHECKED_DISCRIMINATOR = 7;
 
 export function getSetAuthorityCheckedDiscriminatorBytes() {
-  return getU8Encoder().encode(SET_AUTHORITY_CHECKED_DISCRIMINATOR);
+  return getU32Encoder().encode(SET_AUTHORITY_CHECKED_DISCRIMINATOR);
 }
 
 export type SetAuthorityCheckedInstruction<
@@ -68,7 +68,7 @@ export type SetAuthorityCheckedInstructionDataArgs = {};
 
 export function getSetAuthorityCheckedInstructionDataEncoder(): Encoder<SetAuthorityCheckedInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([['discriminator', getU8Encoder()]]),
+    getStructEncoder([['discriminator', getU32Encoder()]]),
     (value) => ({
       ...value,
       discriminator: SET_AUTHORITY_CHECKED_DISCRIMINATOR,
@@ -77,7 +77,7 @@ export function getSetAuthorityCheckedInstructionDataEncoder(): Encoder<SetAutho
 }
 
 export function getSetAuthorityCheckedInstructionDataDecoder(): Decoder<SetAuthorityCheckedInstructionData> {
-  return getStructDecoder([['discriminator', getU8Decoder()]]);
+  return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getSetAuthorityCheckedInstructionDataCodec(): Codec<

@@ -10,8 +10,8 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
-  getU8Decoder,
-  getU8Encoder,
+  getU32Decoder,
+  getU32Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -30,7 +30,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const INITIALIZE_BUFFER_DISCRIMINATOR = 0;
 
 export function getInitializeBufferDiscriminatorBytes() {
-  return getU8Encoder().encode(INITIALIZE_BUFFER_DISCRIMINATOR);
+  return getU32Encoder().encode(INITIALIZE_BUFFER_DISCRIMINATOR);
 }
 
 export type InitializeBufferInstruction<
@@ -58,13 +58,13 @@ export type InitializeBufferInstructionDataArgs = {};
 
 export function getInitializeBufferInstructionDataEncoder(): Encoder<InitializeBufferInstructionDataArgs> {
   return transformEncoder(
-    getStructEncoder([['discriminator', getU8Encoder()]]),
+    getStructEncoder([['discriminator', getU32Encoder()]]),
     (value) => ({ ...value, discriminator: INITIALIZE_BUFFER_DISCRIMINATOR })
   );
 }
 
 export function getInitializeBufferInstructionDataDecoder(): Decoder<InitializeBufferInstructionData> {
-  return getStructDecoder([['discriminator', getU8Decoder()]]);
+  return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getInitializeBufferInstructionDataCodec(): Codec<

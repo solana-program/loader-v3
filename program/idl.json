@@ -24,7 +24,7 @@
       ],
       "args": [],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 0
       }
     },
@@ -59,7 +59,7 @@
         }
       ],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 1
       }
     },
@@ -138,7 +138,7 @@
         }
       ],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 2
       }
     },
@@ -204,7 +204,7 @@
       ],
       "args": [],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 3
       }
     },
@@ -239,7 +239,7 @@
       ],
       "args": [],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 4
       }
     },
@@ -283,7 +283,7 @@
       ],
       "args": [],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 5
       }
     },
@@ -332,7 +332,7 @@
         }
       ],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 6
       }
     },
@@ -366,7 +366,7 @@
       ],
       "args": [],
       "discriminant": {
-        "type": "u8",
+        "type": "u32",
         "value": 7
       }
     }

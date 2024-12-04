@@ -16,8 +16,6 @@ import {
   getStructEncoder,
   getU32Decoder,
   getU32Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -39,7 +37,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const WRITE_DISCRIMINATOR = 1;
 
 export function getWriteDiscriminatorBytes() {
-  return getU8Encoder().encode(WRITE_DISCRIMINATOR);
+  return getU32Encoder().encode(WRITE_DISCRIMINATOR);
 }
 
 export type WriteInstruction<
@@ -76,7 +74,7 @@ export type WriteInstructionDataArgs = {
 export function getWriteInstructionDataEncoder(): Encoder<WriteInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
+      ['discriminator', getU32Encoder()],
       ['offset', getU32Encoder()],
       ['bytes', addEncoderSizePrefix(getBytesEncoder(), getU32Encoder())],
     ]),
@@ -86,7 +84,7 @@ export function getWriteInstructionDataEncoder(): Encoder<WriteInstructionDataAr
 
 export function getWriteInstructionDataDecoder(): Decoder<WriteInstructionData> {
   return getStructDecoder([
-    ['discriminator', getU8Decoder()],
+    ['discriminator', getU32Decoder()],
     ['offset', getU32Decoder()],
     ['bytes', addDecoderSizePrefix(getBytesDecoder(), getU32Decoder())],
   ]);

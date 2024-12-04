@@ -12,8 +12,6 @@ import {
   getStructEncoder,
   getU32Decoder,
   getU32Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -35,7 +33,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const EXTEND_PROGRAM_DISCRIMINATOR = 6;
 
 export function getExtendProgramDiscriminatorBytes() {
-  return getU8Encoder().encode(EXTEND_PROGRAM_DISCRIMINATOR);
+  return getU32Encoder().encode(EXTEND_PROGRAM_DISCRIMINATOR);
 }
 
 export type ExtendProgramInstruction<
@@ -76,7 +74,7 @@ export type ExtendProgramInstructionDataArgs = { additionalBytes: number };
 export function getExtendProgramInstructionDataEncoder(): Encoder<ExtendProgramInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
+      ['discriminator', getU32Encoder()],
       ['additionalBytes', getU32Encoder()],
     ]),
     (value) => ({ ...value, discriminator: EXTEND_PROGRAM_DISCRIMINATOR })
@@ -85,7 +83,7 @@ export function getExtendProgramInstructionDataEncoder(): Encoder<ExtendProgramI
 
 export function getExtendProgramInstructionDataDecoder(): Decoder<ExtendProgramInstructionData> {
   return getStructDecoder([
-    ['discriminator', getU8Decoder()],
+    ['discriminator', getU32Decoder()],
     ['additionalBytes', getU32Decoder()],
   ]);
 }

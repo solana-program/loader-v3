@@ -10,10 +10,10 @@ import {
   combineCodec,
   getStructDecoder,
   getStructEncoder,
+  getU32Decoder,
+  getU32Encoder,
   getU64Decoder,
   getU64Encoder,
-  getU8Decoder,
-  getU8Encoder,
   transformEncoder,
   type Address,
   type Codec,
@@ -36,7 +36,7 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR = 2;
 
 export function getDeployWithMaxDataLenDiscriminatorBytes() {
-  return getU8Encoder().encode(DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR);
+  return getU32Encoder().encode(DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR);
 }
 
 export type DeployWithMaxDataLenInstruction<
@@ -102,7 +102,7 @@ export type DeployWithMaxDataLenInstructionDataArgs = {
 export function getDeployWithMaxDataLenInstructionDataEncoder(): Encoder<DeployWithMaxDataLenInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
-      ['discriminator', getU8Encoder()],
+      ['discriminator', getU32Encoder()],
       ['maxDataLen', getU64Encoder()],
     ]),
     (value) => ({
@@ -114,7 +114,7 @@ export function getDeployWithMaxDataLenInstructionDataEncoder(): Encoder<DeployW
 
 export function getDeployWithMaxDataLenInstructionDataDecoder(): Decoder<DeployWithMaxDataLenInstructionData> {
   return getStructDecoder([
-    ['discriminator', getU8Decoder()],
+    ['discriminator', getU32Decoder()],
     ['maxDataLen', getU64Decoder()],
   ]);
 }
