@@ -1,29 +1,27 @@
 #![allow(dead_code)]
 #![cfg(feature = "test-sbf")]
 
+#[allow(deprecated)]
+use solana_sdk::system_program;
 use {
     mollusk_svm::Mollusk,
     solana_loader_v3_program::state::UpgradeableLoaderState,
-    solana_sdk::{
-        account::{AccountSharedData, WritableAccount},
-        rent::Rent,
-        system_program,
-    },
+    solana_sdk::{account::Account, rent::Rent},
 };
 
 pub fn setup() -> Mollusk {
     Mollusk::new(&solana_loader_v3_program::id(), "solana_loader_v3_program")
 }
 
-pub fn system_account_with_lamports(lamports: u64) -> AccountSharedData {
-    AccountSharedData::new(lamports, 0, &system_program::id())
+pub fn system_account_with_lamports(lamports: u64) -> Account {
+    Account::new(lamports, 0, &system_program::id())
 }
 
 pub fn upgradeable_state_account(
     state: &UpgradeableLoaderState,
     additional_bytes: &[u8],
     executable: bool,
-) -> AccountSharedData {
+) -> Account {
     // Annoying, but necessary because of the program's layout expectations.
     let data_size = match state {
         UpgradeableLoaderState::Uninitialized => UpgradeableLoaderState::size_of_uninitialized(),
@@ -41,10 +39,11 @@ pub fn upgradeable_state_account(
     let space = data.len();
     let lamports = Rent::default().minimum_balance(space);
 
-    let mut account = AccountSharedData::new(lamports, space, &solana_loader_v3_program::id());
-    account.set_data_from_slice(&data);
-
-    account.set_executable(executable);
-
-    account
+    Account {
+        lamports,
+        owner: solana_loader_v3_program::id(),
+        data,
+        executable,
+        ..Account::default()
+    }
 }

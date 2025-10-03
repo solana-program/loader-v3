@@ -10,7 +10,7 @@ use {
         state::{get_program_data_address, UpgradeableLoaderState},
     },
     solana_sdk::{
-        account::{AccountSharedData, WritableAccount},
+        account::{Account, WritableAccount},
         program_error::ProgramError,
         pubkey::Pubkey,
     },
@@ -24,10 +24,7 @@ fn fail_recipient_same_as_close_account() {
 
     mollusk.process_and_validate_instruction(
         &close(&target, &target, None, None),
-        &[
-            (target, AccountSharedData::default()),
-            (target, AccountSharedData::default()),
-        ],
+        &[(target, Account::default()), (target, Account::default())],
         &[Check::err(ProgramError::InvalidArgument)],
     );
 }
@@ -53,7 +50,7 @@ fn fail_invalid_account_state() {
                     true,
                 ),
             ),
-            (destination, AccountSharedData::default()),
+            (destination, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidArgument)],
     );
@@ -78,7 +75,7 @@ fn uninitialized_success() {
                 target,
                 upgradeable_state_account(&UpgradeableLoaderState::Uninitialized, &[], false),
             ),
-            (destination, AccountSharedData::default()),
+            (destination, Account::default()),
         ],
         &[
             Check::success(),
@@ -116,8 +113,8 @@ fn buffer_fail_buffer_immutable() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::Immutable)],
     );
@@ -144,8 +141,8 @@ fn buffer_fail_incorrect_authority() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -175,8 +172,8 @@ fn buffer_fail_authority_not_signer() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::MissingRequiredSignature)],
     );
@@ -208,12 +205,12 @@ fn buffer_success() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
         ],
         &[
             Check::success(),
-            Check::compute_units(12_792),
+            Check::compute_units(3_628),
             // Closed, but still owned by the loader.
             Check::account(&buffer)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.
@@ -254,8 +251,8 @@ fn programdata_fail_program_not_writable() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -304,8 +301,8 @@ fn programdata_fail_program_not_owned_by_loader() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (program, program_account),
         ],
         &[Check::err(ProgramError::IncorrectProgramId)],
@@ -337,8 +334,8 @@ fn programdata_fail_program_deployed_in_slot() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -379,8 +376,8 @@ fn programdata_fail_not_upgradeable() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -421,8 +418,8 @@ fn programdata_fail_incorrect_authority() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -466,8 +463,8 @@ fn programdata_fail_authority_not_signer() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -513,8 +510,8 @@ fn programdata_success() {
                     false,
                 ),
             ),
-            (destination, AccountSharedData::default()),
-            (authority, AccountSharedData::default()),
+            (destination, Account::default()),
+            (authority, Account::default()),
             (
                 program,
                 upgradeable_state_account(
@@ -528,7 +525,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(14_431),
+            Check::compute_units(4_995),
             // Closed, but still owned by the loader.
             Check::account(&programdata)
                 .data(&[0, 0, 0, 0]) // Size of Uninitialized.

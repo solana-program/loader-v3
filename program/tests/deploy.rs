@@ -10,7 +10,7 @@ use {
         state::{get_program_data_address, UpgradeableLoaderState},
     },
     solana_sdk::{
-        account::{AccountSharedData, ReadableAccount},
+        account::{Account, ReadableAccount},
         program_error::ProgramError,
         pubkey::Pubkey,
         system_instruction::MAX_PERMITTED_DATA_LENGTH,
@@ -42,7 +42,7 @@ fn fail_program_already_initialized() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
                 // Already initialized.
@@ -67,7 +67,7 @@ fn fail_program_already_initialized() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::AccountAlreadyInitialized)],
     );
@@ -98,10 +98,10 @@ fn fail_program_account_too_small() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     100_000_000,
                     UpgradeableLoaderState::size_of_program().saturating_sub(1), // Too small.
                     &solana_loader_v3_program::id(),
@@ -120,7 +120,7 @@ fn fail_program_account_too_small() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::AccountDataTooSmall)],
     );
@@ -156,10 +156,10 @@ fn fail_program_account_not_rent_exempt() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports.saturating_sub(1), // Not rent exempt.
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -178,7 +178,7 @@ fn fail_program_account_not_rent_exempt() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InsufficientFunds)],
     );
@@ -214,10 +214,10 @@ fn fail_invalid_buffer_state() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -238,7 +238,7 @@ fn fail_invalid_buffer_state() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidArgument)],
     );
@@ -274,10 +274,10 @@ fn fail_incorrect_buffer_authority() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -296,7 +296,7 @@ fn fail_incorrect_buffer_authority() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -335,10 +335,10 @@ fn fail_buffer_authority_not_signer() {
         &instruction,
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -357,7 +357,7 @@ fn fail_buffer_authority_not_signer() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::MissingRequiredSignature)],
     );
@@ -399,10 +399,10 @@ fn fail_max_data_len_too_small() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -421,7 +421,7 @@ fn fail_max_data_len_too_small() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::AccountDataTooSmall)],
     );
@@ -457,10 +457,10 @@ fn fail_max_data_len_too_large() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -479,7 +479,7 @@ fn fail_max_data_len_too_large() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidArgument)],
     );
@@ -515,10 +515,10 @@ fn fail_incorrect_programdata_address() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -537,7 +537,7 @@ fn fail_incorrect_programdata_address() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidArgument)],
     );
@@ -587,7 +587,7 @@ fn fail_programdata_already_initialized() {
             ),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -606,7 +606,7 @@ fn fail_programdata_already_initialized() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::Custom(
             0, // SystemError::AccountAlreadyInUse
@@ -644,10 +644,10 @@ fn success() {
         ),
         &[
             (payer, system_account_with_lamports(100_000_000_000)),
-            (programdata, AccountSharedData::default()),
+            (programdata, Account::default()),
             (
                 program,
-                AccountSharedData::new(
+                Account::new(
                     program_rent_exempt_lamports,
                     UpgradeableLoaderState::size_of_program(),
                     &solana_loader_v3_program::id(),
@@ -666,11 +666,11 @@ fn success() {
             mollusk.sysvars.keyed_account_for_rent_sysvar(),
             mollusk.sysvars.keyed_account_for_clock_sysvar(),
             keyed_account_for_system_program(),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[
             Check::success(),
-            Check::compute_units(21_854),
+            Check::compute_units(11_831),
             Check::account(&program)
                 .data(
                     &bincode::serialize(&UpgradeableLoaderState::Program {
