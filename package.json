@@ -10,7 +10,7 @@
     "solana:check": "zx ./scripts/check-solana-version.mjs",
     "solana:link": "zx ./scripts/link-solana-version.mjs",
     "generate": "pnpm generate:idls && pnpm generate:clients",
-    "generate:clients": "zx ./scripts/generate-clients.mjs",
+    "generate:clients": "codama run --all",
     "validator:start": "zx ./scripts/start-validator.mjs",
     "validator:restart": "pnpm validator:start --restart",
     "validator:stop": "zx ./scripts/stop-validator.mjs",
