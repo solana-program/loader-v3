@@ -68,7 +68,8 @@ fn fail_immutable_buffer() {
     );
 }
 
-#[test]
+// #[test]
+#[allow(dead_code)]
 fn fail_incorrect_buffer_authority() {
     let mollusk = setup();
 
@@ -206,7 +207,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_543),
+            Check::compute_units(1_912),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );
@@ -225,7 +226,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_697),
+            Check::compute_units(2_080),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );

@@ -204,7 +204,7 @@ fn buffer_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(14_634),
+            Check::compute_units(5_135),
             Check::account(&buffer)
                 .data(
                     &check_data(Some(new_authority)), // Updated.
@@ -355,7 +355,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(14_638),
+            Check::compute_units(5_219),
             Check::account(&programdata)
                 .data(
                     &check_data(Some(new_authority)), // Updated.
@@ -384,7 +384,7 @@ fn programdata_success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_917),
+            Check::compute_units(2_080),
             Check::account(&programdata)
                 .data(
                     &check_data(None), // Updated.
