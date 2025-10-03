@@ -3,7 +3,7 @@ resolver = "2"
 members = ["clients/rust", "program"]
 
 [workspace.metadata.cli]
-solana = "2.0.2"
+solana = "2.2.1"
 
 [workspace.metadata.toolchains]
 format = "nightly-2024-05-02"
