@@ -7,7 +7,7 @@ use {
     mollusk_svm::result::Check,
     solana_loader_v3_program::{instruction::write, state::UpgradeableLoaderState},
     solana_sdk::{
-        account::{AccountSharedData, WritableAccount},
+        account::{Account, WritableAccount},
         instruction::InstructionError,
         program_error::ProgramError,
         pubkey::Pubkey,
@@ -36,7 +36,7 @@ fn fail_invalid_buffer_state() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidAccountData)],
     );
@@ -62,7 +62,7 @@ fn fail_immutable_buffer() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::Immutable)],
     );
@@ -88,7 +88,7 @@ fn fail_incorrect_buffer_authority() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -117,7 +117,7 @@ fn fail_buffer_authority_not_signer() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::MissingRequiredSignature)],
     );
@@ -143,7 +143,7 @@ fn fail_buffer_too_small() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::AccountDataTooSmall)],
     );
@@ -166,10 +166,7 @@ fn fail_buffer_account_not_owned_by_loader() {
 
     mollusk.process_and_validate_instruction(
         &write(&buffer, &authority, 0, vec![4; 12]),
-        &[
-            (buffer, buffer_account),
-            (authority, AccountSharedData::default()),
-        ],
+        &[(buffer, buffer_account), (authority, Account::default())],
         &[Check::instruction_err(
             InstructionError::ExternalAccountDataModified,
         )],
@@ -205,7 +202,7 @@ fn success() {
                 buffer,
                 upgradeable_state_account(&state, uninitialized_data, false),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[
             Check::success(),
@@ -224,7 +221,7 @@ fn success() {
         &write(&buffer, &authority, offset, bytes),
         &[
             (buffer, result.get_account(&buffer).unwrap().clone()),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[
             Check::success(),

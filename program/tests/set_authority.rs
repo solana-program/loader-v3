@@ -6,7 +6,7 @@ use {
     common::{setup, upgradeable_state_account},
     mollusk_svm::result::Check,
     solana_loader_v3_program::{instruction::set_authority, state::UpgradeableLoaderState},
-    solana_sdk::{account::AccountSharedData, program_error::ProgramError, pubkey::Pubkey},
+    solana_sdk::{account::Account, program_error::ProgramError, pubkey::Pubkey},
 };
 
 #[test]
@@ -33,8 +33,8 @@ fn fail_invalid_account_state() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidArgument)],
     );
@@ -66,7 +66,7 @@ fn buffer_fail_authority_not_provided() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -95,8 +95,8 @@ fn buffer_fail_buffer_immutable() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::Immutable)],
     );
@@ -125,8 +125,8 @@ fn buffer_fail_incorrect_authority() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -158,8 +158,8 @@ fn buffer_fail_authority_not_signer() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::MissingRequiredSignature)],
     );
@@ -199,8 +199,8 @@ fn buffer_success() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[
             Check::success(),
@@ -240,8 +240,8 @@ fn programdata_fail_not_upgradeable() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::Immutable)],
     );
@@ -271,8 +271,8 @@ fn programdata_fail_incorrect_authority() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::IncorrectAuthority)],
     );
@@ -305,8 +305,8 @@ fn programdata_fail_authority_not_signer() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[Check::err(ProgramError::MissingRequiredSignature)],
     );
@@ -350,8 +350,8 @@ fn programdata_success() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[
             Check::success(),
@@ -379,8 +379,8 @@ fn programdata_success() {
                     false,
                 ),
             ),
-            (current_authority, AccountSharedData::default()),
-            (new_authority, AccountSharedData::default()),
+            (current_authority, Account::default()),
+            (new_authority, Account::default()),
         ],
         &[
             Check::success(),

@@ -7,7 +7,7 @@ use {
     mollusk_svm::result::Check,
     solana_loader_v3_program::{instruction::initialize_buffer, state::UpgradeableLoaderState},
     solana_sdk::{
-        account::AccountSharedData, instruction::InstructionError, program_error::ProgramError,
+        account::Account, instruction::InstructionError, program_error::ProgramError,
         pubkey::Pubkey,
     },
 };
@@ -32,7 +32,7 @@ fn fail_buffer_already_initialized() {
                     false,
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::AccountAlreadyInitialized)],
     );
@@ -50,13 +50,13 @@ fn fail_buffer_account_too_small() {
         &[
             (
                 source,
-                AccountSharedData::new(
+                Account::new(
                     100_000_000,
                     0, // Too small.
                     &solana_loader_v3_program::id(),
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::err(ProgramError::InvalidAccountData)],
     );
@@ -74,13 +74,13 @@ fn fail_buffer_account_not_owned_by_loader() {
         &[
             (
                 source,
-                AccountSharedData::new(
+                Account::new(
                     100_000_000,
                     UpgradeableLoaderState::size_of_buffer(0),
                     &Pubkey::new_unique(), // Not the loader.
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[Check::instruction_err(
             InstructionError::ExternalAccountDataModified,
@@ -100,13 +100,13 @@ fn success() {
         &[
             (
                 source,
-                AccountSharedData::new(
+                Account::new(
                     100_000_000,
                     UpgradeableLoaderState::size_of_buffer(0),
                     &solana_loader_v3_program::id(),
                 ),
             ),
-            (authority, AccountSharedData::default()),
+            (authority, Account::default()),
         ],
         &[
             Check::success(),
