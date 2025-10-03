@@ -2,7 +2,7 @@ import { getToolchainArgument } from "./scripts/utils.mjs";
 import path from "node:path";
 import fs from "node:fs";
 
-const prettier = JSON.parse(
+const prettierOptions = JSON.parse(
   fs.readFileSync(path.join("clients", "js", ".prettierrc.json"), "utf-8")
 );
 
@@ -24,7 +24,7 @@ export default {
   scripts: {
     js: {
       from: "@codama/renderers-js",
-      args: ["clients/js/src/generated", { prettier }],
+      args: ["clients/js/src/generated", { prettierOptions }],
     },
     rust: {
       from: "@codama/renderers-rust",
