@@ -111,7 +111,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_836),
+            Check::compute_units(1_763),
             Check::account(&source)
                 .lamports(100_000_000)
                 .owner(&solana_loader_v3_program::id())

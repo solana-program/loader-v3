@@ -613,7 +613,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(7_315),
+            Check::compute_units(7_215),
             Check::account(&programdata)
                 .lamports(new_rent_exemption)
                 .space(new_size)
