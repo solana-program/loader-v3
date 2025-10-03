@@ -1,10 +1,12 @@
 #![allow(dead_code)]
 #![cfg(feature = "test-sbf")]
 
+#[allow(deprecated)]
+use solana_sdk::system_program;
 use {
     mollusk_svm::Mollusk,
     solana_loader_v3_program::state::UpgradeableLoaderState,
-    solana_sdk::{account::Account, rent::Rent, system_program},
+    solana_sdk::{account::Account, rent::Rent},
 };
 
 pub fn setup() -> Mollusk {

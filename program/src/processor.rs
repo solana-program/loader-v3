@@ -1,5 +1,7 @@
 //! Program processor.
 
+#[allow(deprecated)]
+use solana_program::system_instruction::{self, MAX_PERMITTED_DATA_LENGTH};
 use {
     crate::{
         instruction::LoaderV3Instruction,
@@ -15,7 +17,6 @@ use {
         program_error::ProgramError,
         pubkey::Pubkey,
         rent::Rent,
-        system_instruction::{self, MAX_PERMITTED_DATA_LENGTH},
         sysvar::Sysvar,
     },
 };
@@ -283,6 +284,7 @@ fn process_deploy_with_max_data_len(
         }
 
         // Clear the buffer.
+        #[allow(deprecated)]
         buffer_info.realloc(UpgradeableLoaderState::size_of_buffer(0), false)?;
     }
 
@@ -464,6 +466,7 @@ fn process_upgrade(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResu
             .fill(0);
 
         // Clear the buffer.
+        #[allow(deprecated)]
         buffer_info.realloc(UpgradeableLoaderState::size_of_buffer(0), false)?;
     }
 
@@ -713,6 +716,7 @@ fn process_close(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult
         **destination_info.try_borrow_mut_lamports()? = new_destination_lamports;
     }
 
+    #[allow(deprecated)]
     buffer_or_programdata_info.realloc(UpgradeableLoaderState::size_of_uninitialized(), true)?;
 
     let mut buffer_or_programdata_data = buffer_or_programdata_info.try_borrow_mut_data()?;
@@ -842,6 +846,7 @@ fn process_extend_program(
 
     // [CORE BPF]: BPF programs can only reallocate a maximum of 10_240 bytes.
     // See https://github.com/anza-xyz/agave/blob/ed51e70c2e6528f602ad4f8fde718f60d7da2d0c/sdk/account-info/src/lib.rs#L16-L17
+    #[allow(deprecated)]
     programdata_info.realloc(new_len, true)?;
 
     // [CORE BPF]: We'll see what happens with on-chain verification...
