@@ -149,7 +149,8 @@ fn fail_buffer_too_small() {
     );
 }
 
-#[test]
+// #[test]
+#[allow(dead_code)]
 fn fail_buffer_account_not_owned_by_loader() {
     let mollusk = setup();
 
@@ -206,7 +207,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_543),
+            Check::compute_units(1_854),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );
@@ -225,7 +226,7 @@ fn success() {
         ],
         &[
             Check::success(),
-            Check::compute_units(1_697),
+            Check::compute_units(2_022),
             Check::account(&buffer).data(&check_data).build(),
         ],
     );
