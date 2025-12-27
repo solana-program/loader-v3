@@ -7,23 +7,23 @@
  */
 
 import {
-  combineCodec,
-  getStructDecoder,
-  getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  transformEncoder,
-  type AccountMeta,
-  type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
-  type Instruction,
-  type InstructionWithAccounts,
-  type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlyUint8Array,
-  type WritableAccount,
+    combineCodec,
+    getStructDecoder,
+    getStructEncoder,
+    getU32Decoder,
+    getU32Encoder,
+    transformEncoder,
+    type AccountMeta,
+    type Address,
+    type FixedSizeCodec,
+    type FixedSizeDecoder,
+    type FixedSizeEncoder,
+    type Instruction,
+    type InstructionWithAccounts,
+    type InstructionWithData,
+    type ReadonlyAccount,
+    type ReadonlyUint8Array,
+    type WritableAccount,
 } from '@solana/kit';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
@@ -31,144 +31,114 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const INITIALIZE_BUFFER_DISCRIMINATOR = 0;
 
 export function getInitializeBufferDiscriminatorBytes() {
-  return getU32Encoder().encode(INITIALIZE_BUFFER_DISCRIMINATOR);
+    return getU32Encoder().encode(INITIALIZE_BUFFER_DISCRIMINATOR);
 }
 
 export type InitializeBufferInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountSourceAccount extends string | AccountMeta<string> = string,
-  TAccountBufferAuthority extends string | AccountMeta<string> = string,
-  TRemainingAccounts extends readonly AccountMeta<string>[] = [],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountSourceAccount extends string | AccountMeta<string> = string,
+    TAccountBufferAuthority extends string | AccountMeta<string> = string,
+    TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
-  InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountSourceAccount extends string
-        ? WritableAccount<TAccountSourceAccount>
-        : TAccountSourceAccount,
-      TAccountBufferAuthority extends string
-        ? ReadonlyAccount<TAccountBufferAuthority>
-        : TAccountBufferAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+    InstructionWithData<ReadonlyUint8Array> &
+    InstructionWithAccounts<
+        [
+            TAccountSourceAccount extends string ? WritableAccount<TAccountSourceAccount> : TAccountSourceAccount,
+            TAccountBufferAuthority extends string ? ReadonlyAccount<TAccountBufferAuthority> : TAccountBufferAuthority,
+            ...TRemainingAccounts,
+        ]
+    >;
 
 export type InitializeBufferInstructionData = { discriminator: number };
 
 export type InitializeBufferInstructionDataArgs = {};
 
 export function getInitializeBufferInstructionDataEncoder(): FixedSizeEncoder<InitializeBufferInstructionDataArgs> {
-  return transformEncoder(
-    getStructEncoder([['discriminator', getU32Encoder()]]),
-    (value) => ({ ...value, discriminator: INITIALIZE_BUFFER_DISCRIMINATOR })
-  );
+    return transformEncoder(getStructEncoder([['discriminator', getU32Encoder()]]), value => ({
+        ...value,
+        discriminator: INITIALIZE_BUFFER_DISCRIMINATOR,
+    }));
 }
 
 export function getInitializeBufferInstructionDataDecoder(): FixedSizeDecoder<InitializeBufferInstructionData> {
-  return getStructDecoder([['discriminator', getU32Decoder()]]);
+    return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getInitializeBufferInstructionDataCodec(): FixedSizeCodec<
-  InitializeBufferInstructionDataArgs,
-  InitializeBufferInstructionData
+    InitializeBufferInstructionDataArgs,
+    InitializeBufferInstructionData
 > {
-  return combineCodec(
-    getInitializeBufferInstructionDataEncoder(),
-    getInitializeBufferInstructionDataDecoder()
-  );
+    return combineCodec(getInitializeBufferInstructionDataEncoder(), getInitializeBufferInstructionDataDecoder());
 }
 
 export type InitializeBufferInput<
-  TAccountSourceAccount extends string = string,
-  TAccountBufferAuthority extends string = string,
+    TAccountSourceAccount extends string = string,
+    TAccountBufferAuthority extends string = string,
 > = {
-  /** Source account to initialize. */
-  sourceAccount: Address<TAccountSourceAccount>;
-  /** Buffer authority. */
-  bufferAuthority: Address<TAccountBufferAuthority>;
+    /** Source account to initialize. */
+    sourceAccount: Address<TAccountSourceAccount>;
+    /** Buffer authority. */
+    bufferAuthority: Address<TAccountBufferAuthority>;
 };
 
 export function getInitializeBufferInstruction<
-  TAccountSourceAccount extends string,
-  TAccountBufferAuthority extends string,
-  TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountSourceAccount extends string,
+    TAccountBufferAuthority extends string,
+    TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
-  input: InitializeBufferInput<TAccountSourceAccount, TAccountBufferAuthority>,
-  config?: { programAddress?: TProgramAddress }
-): InitializeBufferInstruction<
-  TProgramAddress,
-  TAccountSourceAccount,
-  TAccountBufferAuthority
-> {
-  // Program address.
-  const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    input: InitializeBufferInput<TAccountSourceAccount, TAccountBufferAuthority>,
+    config?: { programAddress?: TProgramAddress },
+): InitializeBufferInstruction<TProgramAddress, TAccountSourceAccount, TAccountBufferAuthority> {
+    // Program address.
+    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
-  // Original accounts.
-  const originalAccounts = {
-    sourceAccount: { value: input.sourceAccount ?? null, isWritable: true },
-    bufferAuthority: {
-      value: input.bufferAuthority ?? null,
-      isWritable: false,
-    },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
+    // Original accounts.
+    const originalAccounts = {
+        sourceAccount: { value: input.sourceAccount ?? null, isWritable: true },
+        bufferAuthority: { value: input.bufferAuthority ?? null, isWritable: false },
+    };
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
 
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.sourceAccount),
-      getAccountMeta(accounts.bufferAuthority),
-    ],
-    data: getInitializeBufferInstructionDataEncoder().encode({}),
-    programAddress,
-  } as InitializeBufferInstruction<
-    TProgramAddress,
-    TAccountSourceAccount,
-    TAccountBufferAuthority
-  >);
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+    return Object.freeze({
+        accounts: [getAccountMeta(accounts.sourceAccount), getAccountMeta(accounts.bufferAuthority)],
+        data: getInitializeBufferInstructionDataEncoder().encode({}),
+        programAddress,
+    } as InitializeBufferInstruction<TProgramAddress, TAccountSourceAccount, TAccountBufferAuthority>);
 }
 
 export type ParsedInitializeBufferInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Source account to initialize. */
-    sourceAccount: TAccountMetas[0];
-    /** Buffer authority. */
-    bufferAuthority: TAccountMetas[1];
-  };
-  data: InitializeBufferInstructionData;
+    programAddress: Address<TProgram>;
+    accounts: {
+        /** Source account to initialize. */
+        sourceAccount: TAccountMetas[0];
+        /** Buffer authority. */
+        bufferAuthority: TAccountMetas[1];
+    };
+    data: InitializeBufferInstructionData;
 };
 
-export function parseInitializeBufferInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+export function parseInitializeBufferInstruction<TProgram extends string, TAccountMetas extends readonly AccountMeta[]>(
+    instruction: Instruction<TProgram> &
+        InstructionWithAccounts<TAccountMetas> &
+        InstructionWithData<ReadonlyUint8Array>,
 ): ParsedInitializeBufferInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 2) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      sourceAccount: getNextAccount(),
-      bufferAuthority: getNextAccount(),
-    },
-    data: getInitializeBufferInstructionDataDecoder().decode(instruction.data),
-  };
+    if (instruction.accounts.length < 2) {
+        // TODO: Coded error.
+        throw new Error('Not enough accounts');
+    }
+    let accountIndex = 0;
+    const getNextAccount = () => {
+        const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
+        accountIndex += 1;
+        return accountMeta;
+    };
+    return {
+        programAddress: instruction.programAddress,
+        accounts: { sourceAccount: getNextAccount(), bufferAuthority: getNextAccount() },
+        data: getInitializeBufferInstructionDataDecoder().decode(instruction.data),
+    };
 }

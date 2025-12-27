@@ -7,26 +7,26 @@
  */
 
 import {
-  combineCodec,
-  getStructDecoder,
-  getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  transformEncoder,
-  type AccountMeta,
-  type AccountSignerMeta,
-  type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
-  type Instruction,
-  type InstructionWithAccounts,
-  type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
+    combineCodec,
+    getStructDecoder,
+    getStructEncoder,
+    getU32Decoder,
+    getU32Encoder,
+    transformEncoder,
+    type AccountMeta,
+    type AccountSignerMeta,
+    type Address,
+    type FixedSizeCodec,
+    type FixedSizeDecoder,
+    type FixedSizeEncoder,
+    type Instruction,
+    type InstructionWithAccounts,
+    type InstructionWithData,
+    type ReadonlyAccount,
+    type ReadonlySignerAccount,
+    type ReadonlyUint8Array,
+    type TransactionSigner,
+    type WritableAccount,
 } from '@solana/kit';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
@@ -34,178 +34,103 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const UPGRADE_DISCRIMINATOR = 3;
 
 export function getUpgradeDiscriminatorBytes() {
-  return getU32Encoder().encode(UPGRADE_DISCRIMINATOR);
+    return getU32Encoder().encode(UPGRADE_DISCRIMINATOR);
 }
 
 export type UpgradeInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountProgramDataAccount extends string | AccountMeta<string> = string,
-  TAccountProgramAccount extends string | AccountMeta<string> = string,
-  TAccountBufferAccount extends string | AccountMeta<string> = string,
-  TAccountSpillAccount extends string | AccountMeta<string> = string,
-  TAccountRentSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarRent111111111111111111111111111111111',
-  TAccountClockSysvar extends
-    | string
-    | AccountMeta<string> = 'SysvarC1ock11111111111111111111111111111111',
-  TAccountAuthority extends string | AccountMeta<string> = string,
-  TRemainingAccounts extends readonly AccountMeta<string>[] = [],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountProgramDataAccount extends string | AccountMeta<string> = string,
+    TAccountProgramAccount extends string | AccountMeta<string> = string,
+    TAccountBufferAccount extends string | AccountMeta<string> = string,
+    TAccountSpillAccount extends string | AccountMeta<string> = string,
+    TAccountRentSysvar extends string | AccountMeta<string> = 'SysvarRent111111111111111111111111111111111',
+    TAccountClockSysvar extends string | AccountMeta<string> = 'SysvarC1ock11111111111111111111111111111111',
+    TAccountAuthority extends string | AccountMeta<string> = string,
+    TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
-  InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountProgramDataAccount extends string
-        ? WritableAccount<TAccountProgramDataAccount>
-        : TAccountProgramDataAccount,
-      TAccountProgramAccount extends string
-        ? WritableAccount<TAccountProgramAccount>
-        : TAccountProgramAccount,
-      TAccountBufferAccount extends string
-        ? WritableAccount<TAccountBufferAccount>
-        : TAccountBufferAccount,
-      TAccountSpillAccount extends string
-        ? WritableAccount<TAccountSpillAccount>
-        : TAccountSpillAccount,
-      TAccountRentSysvar extends string
-        ? ReadonlyAccount<TAccountRentSysvar>
-        : TAccountRentSysvar,
-      TAccountClockSysvar extends string
-        ? ReadonlyAccount<TAccountClockSysvar>
-        : TAccountClockSysvar,
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+    InstructionWithData<ReadonlyUint8Array> &
+    InstructionWithAccounts<
+        [
+            TAccountProgramDataAccount extends string
+                ? WritableAccount<TAccountProgramDataAccount>
+                : TAccountProgramDataAccount,
+            TAccountProgramAccount extends string ? WritableAccount<TAccountProgramAccount> : TAccountProgramAccount,
+            TAccountBufferAccount extends string ? WritableAccount<TAccountBufferAccount> : TAccountBufferAccount,
+            TAccountSpillAccount extends string ? WritableAccount<TAccountSpillAccount> : TAccountSpillAccount,
+            TAccountRentSysvar extends string ? ReadonlyAccount<TAccountRentSysvar> : TAccountRentSysvar,
+            TAccountClockSysvar extends string ? ReadonlyAccount<TAccountClockSysvar> : TAccountClockSysvar,
+            TAccountAuthority extends string
+                ? ReadonlySignerAccount<TAccountAuthority> & AccountSignerMeta<TAccountAuthority>
+                : TAccountAuthority,
+            ...TRemainingAccounts,
+        ]
+    >;
 
 export type UpgradeInstructionData = { discriminator: number };
 
 export type UpgradeInstructionDataArgs = {};
 
 export function getUpgradeInstructionDataEncoder(): FixedSizeEncoder<UpgradeInstructionDataArgs> {
-  return transformEncoder(
-    getStructEncoder([['discriminator', getU32Encoder()]]),
-    (value) => ({ ...value, discriminator: UPGRADE_DISCRIMINATOR })
-  );
+    return transformEncoder(getStructEncoder([['discriminator', getU32Encoder()]]), value => ({
+        ...value,
+        discriminator: UPGRADE_DISCRIMINATOR,
+    }));
 }
 
 export function getUpgradeInstructionDataDecoder(): FixedSizeDecoder<UpgradeInstructionData> {
-  return getStructDecoder([['discriminator', getU32Decoder()]]);
+    return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
-export function getUpgradeInstructionDataCodec(): FixedSizeCodec<
-  UpgradeInstructionDataArgs,
-  UpgradeInstructionData
-> {
-  return combineCodec(
-    getUpgradeInstructionDataEncoder(),
-    getUpgradeInstructionDataDecoder()
-  );
+export function getUpgradeInstructionDataCodec(): FixedSizeCodec<UpgradeInstructionDataArgs, UpgradeInstructionData> {
+    return combineCodec(getUpgradeInstructionDataEncoder(), getUpgradeInstructionDataDecoder());
 }
 
 export type UpgradeInput<
-  TAccountProgramDataAccount extends string = string,
-  TAccountProgramAccount extends string = string,
-  TAccountBufferAccount extends string = string,
-  TAccountSpillAccount extends string = string,
-  TAccountRentSysvar extends string = string,
-  TAccountClockSysvar extends string = string,
-  TAccountAuthority extends string = string,
+    TAccountProgramDataAccount extends string = string,
+    TAccountProgramAccount extends string = string,
+    TAccountBufferAccount extends string = string,
+    TAccountSpillAccount extends string = string,
+    TAccountRentSysvar extends string = string,
+    TAccountClockSysvar extends string = string,
+    TAccountAuthority extends string = string,
 > = {
-  /** ProgramData account. */
-  programDataAccount: Address<TAccountProgramDataAccount>;
-  /** Program account. */
-  programAccount: Address<TAccountProgramAccount>;
-  /** Buffer account where the new program data has been written. */
-  bufferAccount: Address<TAccountBufferAccount>;
-  /** Spill account. */
-  spillAccount: Address<TAccountSpillAccount>;
-  /** Rent sysvar. */
-  rentSysvar?: Address<TAccountRentSysvar>;
-  /** Clock sysvar. */
-  clockSysvar?: Address<TAccountClockSysvar>;
-  /** Authority. */
-  authority: TransactionSigner<TAccountAuthority>;
+    /** ProgramData account. */
+    programDataAccount: Address<TAccountProgramDataAccount>;
+    /** Program account. */
+    programAccount: Address<TAccountProgramAccount>;
+    /** Buffer account where the new program data has been written. */
+    bufferAccount: Address<TAccountBufferAccount>;
+    /** Spill account. */
+    spillAccount: Address<TAccountSpillAccount>;
+    /** Rent sysvar. */
+    rentSysvar?: Address<TAccountRentSysvar>;
+    /** Clock sysvar. */
+    clockSysvar?: Address<TAccountClockSysvar>;
+    /** Authority. */
+    authority: TransactionSigner<TAccountAuthority>;
 };
 
 export function getUpgradeInstruction<
-  TAccountProgramDataAccount extends string,
-  TAccountProgramAccount extends string,
-  TAccountBufferAccount extends string,
-  TAccountSpillAccount extends string,
-  TAccountRentSysvar extends string,
-  TAccountClockSysvar extends string,
-  TAccountAuthority extends string,
-  TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountProgramDataAccount extends string,
+    TAccountProgramAccount extends string,
+    TAccountBufferAccount extends string,
+    TAccountSpillAccount extends string,
+    TAccountRentSysvar extends string,
+    TAccountClockSysvar extends string,
+    TAccountAuthority extends string,
+    TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
-  input: UpgradeInput<
-    TAccountProgramDataAccount,
-    TAccountProgramAccount,
-    TAccountBufferAccount,
-    TAccountSpillAccount,
-    TAccountRentSysvar,
-    TAccountClockSysvar,
-    TAccountAuthority
-  >,
-  config?: { programAddress?: TProgramAddress }
+    input: UpgradeInput<
+        TAccountProgramDataAccount,
+        TAccountProgramAccount,
+        TAccountBufferAccount,
+        TAccountSpillAccount,
+        TAccountRentSysvar,
+        TAccountClockSysvar,
+        TAccountAuthority
+    >,
+    config?: { programAddress?: TProgramAddress },
 ): UpgradeInstruction<
-  TProgramAddress,
-  TAccountProgramDataAccount,
-  TAccountProgramAccount,
-  TAccountBufferAccount,
-  TAccountSpillAccount,
-  TAccountRentSysvar,
-  TAccountClockSysvar,
-  TAccountAuthority
-> {
-  // Program address.
-  const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    programDataAccount: {
-      value: input.programDataAccount ?? null,
-      isWritable: true,
-    },
-    programAccount: { value: input.programAccount ?? null, isWritable: true },
-    bufferAccount: { value: input.bufferAccount ?? null, isWritable: true },
-    spillAccount: { value: input.spillAccount ?? null, isWritable: true },
-    rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
-    clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
-    authority: { value: input.authority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  // Resolve default values.
-  if (!accounts.rentSysvar.value) {
-    accounts.rentSysvar.value =
-      'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
-  }
-  if (!accounts.clockSysvar.value) {
-    accounts.clockSysvar.value =
-      'SysvarC1ock11111111111111111111111111111111' as Address<'SysvarC1ock11111111111111111111111111111111'>;
-  }
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.programDataAccount),
-      getAccountMeta(accounts.programAccount),
-      getAccountMeta(accounts.bufferAccount),
-      getAccountMeta(accounts.spillAccount),
-      getAccountMeta(accounts.rentSysvar),
-      getAccountMeta(accounts.clockSysvar),
-      getAccountMeta(accounts.authority),
-    ],
-    data: getUpgradeInstructionDataEncoder().encode({}),
-    programAddress,
-  } as UpgradeInstruction<
     TProgramAddress,
     TAccountProgramDataAccount,
     TAccountProgramAccount,
@@ -214,62 +139,107 @@ export function getUpgradeInstruction<
     TAccountRentSysvar,
     TAccountClockSysvar,
     TAccountAuthority
-  >);
+> {
+    // Program address.
+    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+
+    // Original accounts.
+    const originalAccounts = {
+        programDataAccount: { value: input.programDataAccount ?? null, isWritable: true },
+        programAccount: { value: input.programAccount ?? null, isWritable: true },
+        bufferAccount: { value: input.bufferAccount ?? null, isWritable: true },
+        spillAccount: { value: input.spillAccount ?? null, isWritable: true },
+        rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
+        clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
+        authority: { value: input.authority ?? null, isWritable: false },
+    };
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+
+    // Resolve default values.
+    if (!accounts.rentSysvar.value) {
+        accounts.rentSysvar.value =
+            'SysvarRent111111111111111111111111111111111' as Address<'SysvarRent111111111111111111111111111111111'>;
+    }
+    if (!accounts.clockSysvar.value) {
+        accounts.clockSysvar.value =
+            'SysvarC1ock11111111111111111111111111111111' as Address<'SysvarC1ock11111111111111111111111111111111'>;
+    }
+
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+    return Object.freeze({
+        accounts: [
+            getAccountMeta(accounts.programDataAccount),
+            getAccountMeta(accounts.programAccount),
+            getAccountMeta(accounts.bufferAccount),
+            getAccountMeta(accounts.spillAccount),
+            getAccountMeta(accounts.rentSysvar),
+            getAccountMeta(accounts.clockSysvar),
+            getAccountMeta(accounts.authority),
+        ],
+        data: getUpgradeInstructionDataEncoder().encode({}),
+        programAddress,
+    } as UpgradeInstruction<
+        TProgramAddress,
+        TAccountProgramDataAccount,
+        TAccountProgramAccount,
+        TAccountBufferAccount,
+        TAccountSpillAccount,
+        TAccountRentSysvar,
+        TAccountClockSysvar,
+        TAccountAuthority
+    >);
 }
 
 export type ParsedUpgradeInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** ProgramData account. */
-    programDataAccount: TAccountMetas[0];
-    /** Program account. */
-    programAccount: TAccountMetas[1];
-    /** Buffer account where the new program data has been written. */
-    bufferAccount: TAccountMetas[2];
-    /** Spill account. */
-    spillAccount: TAccountMetas[3];
-    /** Rent sysvar. */
-    rentSysvar: TAccountMetas[4];
-    /** Clock sysvar. */
-    clockSysvar: TAccountMetas[5];
-    /** Authority. */
-    authority: TAccountMetas[6];
-  };
-  data: UpgradeInstructionData;
+    programAddress: Address<TProgram>;
+    accounts: {
+        /** ProgramData account. */
+        programDataAccount: TAccountMetas[0];
+        /** Program account. */
+        programAccount: TAccountMetas[1];
+        /** Buffer account where the new program data has been written. */
+        bufferAccount: TAccountMetas[2];
+        /** Spill account. */
+        spillAccount: TAccountMetas[3];
+        /** Rent sysvar. */
+        rentSysvar: TAccountMetas[4];
+        /** Clock sysvar. */
+        clockSysvar: TAccountMetas[5];
+        /** Authority. */
+        authority: TAccountMetas[6];
+    };
+    data: UpgradeInstructionData;
 };
 
-export function parseUpgradeInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+export function parseUpgradeInstruction<TProgram extends string, TAccountMetas extends readonly AccountMeta[]>(
+    instruction: Instruction<TProgram> &
+        InstructionWithAccounts<TAccountMetas> &
+        InstructionWithData<ReadonlyUint8Array>,
 ): ParsedUpgradeInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 7) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      programDataAccount: getNextAccount(),
-      programAccount: getNextAccount(),
-      bufferAccount: getNextAccount(),
-      spillAccount: getNextAccount(),
-      rentSysvar: getNextAccount(),
-      clockSysvar: getNextAccount(),
-      authority: getNextAccount(),
-    },
-    data: getUpgradeInstructionDataDecoder().decode(instruction.data),
-  };
+    if (instruction.accounts.length < 7) {
+        // TODO: Coded error.
+        throw new Error('Not enough accounts');
+    }
+    let accountIndex = 0;
+    const getNextAccount = () => {
+        const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
+        accountIndex += 1;
+        return accountMeta;
+    };
+    return {
+        programAddress: instruction.programAddress,
+        accounts: {
+            programDataAccount: getNextAccount(),
+            programAccount: getNextAccount(),
+            bufferAccount: getNextAccount(),
+            spillAccount: getNextAccount(),
+            rentSysvar: getNextAccount(),
+            clockSysvar: getNextAccount(),
+            authority: getNextAccount(),
+        },
+        data: getUpgradeInstructionDataDecoder().decode(instruction.data),
+    };
 }

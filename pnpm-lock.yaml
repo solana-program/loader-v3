@@ -23,6 +23,9 @@ importers:
       '@metaplex-foundation/shank-js':
         specifier: ^0.1.7
         version: 0.1.7
+      '@solana/prettier-config-solana':
+        specifier: ^0.0.6
+        version: 0.0.6(prettier@3.6.2)
       codama:
         specifier: ^1.5.0
         version: 1.5.0
@@ -143,6 +146,11 @@ packages:
     engines: {node: '>=20.18.0'}
     peerDependencies:
       typescript: '>=5.3.3'
+
+  '@solana/prettier-config-solana@0.0.6':
+    resolution: {integrity: sha512-/s55hDoAyh5QyltQh/jjNK3AgACEq885+DnC6lYhrmYZiV6I0iHITWYnKd8d23KRKs/RBjlaQH54MiafeoI9hw==}
+    peerDependencies:
+      prettier: ^3.7.4
 
   '@types/fs-extra@11.0.4':
     resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
@@ -685,6 +693,10 @@ snapshots:
       typescript: 5.6.2
     transitivePeerDependencies:
       - fastestsmallesttextencoderdecoder
+
+  '@solana/prettier-config-solana@0.0.6(prettier@3.6.2)':
+    dependencies:
+      prettier: 3.6.2
 
   '@types/fs-extra@11.0.4':
     dependencies:

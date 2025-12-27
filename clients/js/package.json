@@ -1,52 +1,52 @@
 {
-  "name": "@solana-program/loader-v3",
-  "version": "0.2.0",
-  "description": "JavaScript client for the Solana Loader V3 program",
-  "sideEffects": false,
-  "module": "./dist/src/index.mjs",
-  "main": "./dist/src/index.js",
-  "types": "./dist/types/index.d.ts",
-  "type": "commonjs",
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/src/index.mjs",
-      "require": "./dist/src/index.js"
+    "name": "@solana-program/loader-v3",
+    "version": "0.2.0",
+    "description": "JavaScript client for the Solana Loader V3 program",
+    "sideEffects": false,
+    "module": "./dist/src/index.mjs",
+    "main": "./dist/src/index.js",
+    "types": "./dist/types/index.d.ts",
+    "type": "commonjs",
+    "exports": {
+        ".": {
+            "types": "./dist/types/index.d.ts",
+            "import": "./dist/src/index.mjs",
+            "require": "./dist/src/index.js"
+        }
+    },
+    "files": [
+        "./dist/src",
+        "./dist/types"
+    ],
+    "scripts": {
+        "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
+        "build:docs": "typedoc",
+        "dev": "vitest",
+        "test": "vitest run",
+        "lint": "eslint --ext js,ts,tsx src",
+        "lint:fix": "eslint --fix --ext js,ts,tsx src",
+        "format": "prettier --check src test",
+        "format:fix": "prettier --write src test",
+        "prepublishOnly": "pnpm build"
+    },
+    "publishConfig": {
+        "access": "public",
+        "registry": "https://registry.npmjs.org"
+    },
+    "license": "MIT",
+    "peerDependencies": {
+        "@solana/kit": "^5.0"
+    },
+    "devDependencies": {
+        "@solana/eslint-config-solana": "^6.0.0",
+        "@solana/kit": "^5.0",
+        "@types/node": "^24",
+        "eslint": "^9.35.0",
+        "prettier": "^3.7.4",
+        "rimraf": "^6.1.2",
+        "tsup": "^8.1.2",
+        "typedoc": "^0.28.15",
+        "typescript": "^5.5.3",
+        "vitest": "^4.0.15"
     }
-  },
-  "files": [
-    "./dist/src",
-    "./dist/types"
-  ],
-  "scripts": {
-    "build": "rimraf dist && tsup && tsc -p ./tsconfig.declarations.json",
-    "build:docs": "typedoc",
-    "dev": "vitest",
-    "test": "vitest run",
-    "lint": "eslint --ext js,ts,tsx src",
-    "lint:fix": "eslint --fix --ext js,ts,tsx src",
-    "format": "prettier --check src test",
-    "format:fix": "prettier --write src test",
-    "prepublishOnly": "pnpm build"
-  },
-  "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
-  },
-  "license": "MIT",
-  "peerDependencies": {
-    "@solana/kit": "^5.0"
-  },
-  "devDependencies": {
-    "@solana/eslint-config-solana": "^6.0.0",
-    "@solana/kit": "^5.0",
-    "@types/node": "^24",
-    "eslint": "^9.35.0",
-    "prettier": "^3.7.4",
-    "rimraf": "^6.1.2",
-    "tsup": "^8.1.2",
-    "typedoc": "^0.28.15",
-    "typescript": "^5.5.3",
-    "vitest": "^4.0.15"
-  }
 }

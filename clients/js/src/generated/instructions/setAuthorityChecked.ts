@@ -7,25 +7,25 @@
  */
 
 import {
-  combineCodec,
-  getStructDecoder,
-  getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  transformEncoder,
-  type AccountMeta,
-  type AccountSignerMeta,
-  type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
-  type Instruction,
-  type InstructionWithAccounts,
-  type InstructionWithData,
-  type ReadonlySignerAccount,
-  type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
+    combineCodec,
+    getStructDecoder,
+    getStructEncoder,
+    getU32Decoder,
+    getU32Encoder,
+    transformEncoder,
+    type AccountMeta,
+    type AccountSignerMeta,
+    type Address,
+    type FixedSizeCodec,
+    type FixedSizeDecoder,
+    type FixedSizeEncoder,
+    type Instruction,
+    type InstructionWithAccounts,
+    type InstructionWithData,
+    type ReadonlySignerAccount,
+    type ReadonlyUint8Array,
+    type TransactionSigner,
+    type WritableAccount,
 } from '@solana/kit';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
@@ -33,175 +33,150 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const SET_AUTHORITY_CHECKED_DISCRIMINATOR = 7;
 
 export function getSetAuthorityCheckedDiscriminatorBytes() {
-  return getU32Encoder().encode(SET_AUTHORITY_CHECKED_DISCRIMINATOR);
+    return getU32Encoder().encode(SET_AUTHORITY_CHECKED_DISCRIMINATOR);
 }
 
 export type SetAuthorityCheckedInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountBufferOrProgramDataAccount extends
-    | string
-    | AccountMeta<string> = string,
-  TAccountCurrentAuthority extends string | AccountMeta<string> = string,
-  TAccountNewAuthority extends string | AccountMeta<string> = string,
-  TRemainingAccounts extends readonly AccountMeta<string>[] = [],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountBufferOrProgramDataAccount extends string | AccountMeta<string> = string,
+    TAccountCurrentAuthority extends string | AccountMeta<string> = string,
+    TAccountNewAuthority extends string | AccountMeta<string> = string,
+    TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
-  InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountBufferOrProgramDataAccount extends string
-        ? WritableAccount<TAccountBufferOrProgramDataAccount>
-        : TAccountBufferOrProgramDataAccount,
-      TAccountCurrentAuthority extends string
-        ? ReadonlySignerAccount<TAccountCurrentAuthority> &
-            AccountSignerMeta<TAccountCurrentAuthority>
-        : TAccountCurrentAuthority,
-      TAccountNewAuthority extends string
-        ? ReadonlySignerAccount<TAccountNewAuthority> &
-            AccountSignerMeta<TAccountNewAuthority>
-        : TAccountNewAuthority,
-      ...TRemainingAccounts,
-    ]
-  >;
+    InstructionWithData<ReadonlyUint8Array> &
+    InstructionWithAccounts<
+        [
+            TAccountBufferOrProgramDataAccount extends string
+                ? WritableAccount<TAccountBufferOrProgramDataAccount>
+                : TAccountBufferOrProgramDataAccount,
+            TAccountCurrentAuthority extends string
+                ? ReadonlySignerAccount<TAccountCurrentAuthority> & AccountSignerMeta<TAccountCurrentAuthority>
+                : TAccountCurrentAuthority,
+            TAccountNewAuthority extends string
+                ? ReadonlySignerAccount<TAccountNewAuthority> & AccountSignerMeta<TAccountNewAuthority>
+                : TAccountNewAuthority,
+            ...TRemainingAccounts,
+        ]
+    >;
 
 export type SetAuthorityCheckedInstructionData = { discriminator: number };
 
 export type SetAuthorityCheckedInstructionDataArgs = {};
 
 export function getSetAuthorityCheckedInstructionDataEncoder(): FixedSizeEncoder<SetAuthorityCheckedInstructionDataArgs> {
-  return transformEncoder(
-    getStructEncoder([['discriminator', getU32Encoder()]]),
-    (value) => ({
-      ...value,
-      discriminator: SET_AUTHORITY_CHECKED_DISCRIMINATOR,
-    })
-  );
+    return transformEncoder(getStructEncoder([['discriminator', getU32Encoder()]]), value => ({
+        ...value,
+        discriminator: SET_AUTHORITY_CHECKED_DISCRIMINATOR,
+    }));
 }
 
 export function getSetAuthorityCheckedInstructionDataDecoder(): FixedSizeDecoder<SetAuthorityCheckedInstructionData> {
-  return getStructDecoder([['discriminator', getU32Decoder()]]);
+    return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
 export function getSetAuthorityCheckedInstructionDataCodec(): FixedSizeCodec<
-  SetAuthorityCheckedInstructionDataArgs,
-  SetAuthorityCheckedInstructionData
+    SetAuthorityCheckedInstructionDataArgs,
+    SetAuthorityCheckedInstructionData
 > {
-  return combineCodec(
-    getSetAuthorityCheckedInstructionDataEncoder(),
-    getSetAuthorityCheckedInstructionDataDecoder()
-  );
+    return combineCodec(getSetAuthorityCheckedInstructionDataEncoder(), getSetAuthorityCheckedInstructionDataDecoder());
 }
 
 export type SetAuthorityCheckedInput<
-  TAccountBufferOrProgramDataAccount extends string = string,
-  TAccountCurrentAuthority extends string = string,
-  TAccountNewAuthority extends string = string,
+    TAccountBufferOrProgramDataAccount extends string = string,
+    TAccountCurrentAuthority extends string = string,
+    TAccountNewAuthority extends string = string,
 > = {
-  /** Buffer or ProgramData account to change the authority of. */
-  bufferOrProgramDataAccount: Address<TAccountBufferOrProgramDataAccount>;
-  /** Current authority. */
-  currentAuthority: TransactionSigner<TAccountCurrentAuthority>;
-  /** New authority. */
-  newAuthority: TransactionSigner<TAccountNewAuthority>;
+    /** Buffer or ProgramData account to change the authority of. */
+    bufferOrProgramDataAccount: Address<TAccountBufferOrProgramDataAccount>;
+    /** Current authority. */
+    currentAuthority: TransactionSigner<TAccountCurrentAuthority>;
+    /** New authority. */
+    newAuthority: TransactionSigner<TAccountNewAuthority>;
 };
 
 export function getSetAuthorityCheckedInstruction<
-  TAccountBufferOrProgramDataAccount extends string,
-  TAccountCurrentAuthority extends string,
-  TAccountNewAuthority extends string,
-  TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountBufferOrProgramDataAccount extends string,
+    TAccountCurrentAuthority extends string,
+    TAccountNewAuthority extends string,
+    TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
-  input: SetAuthorityCheckedInput<
-    TAccountBufferOrProgramDataAccount,
-    TAccountCurrentAuthority,
-    TAccountNewAuthority
-  >,
-  config?: { programAddress?: TProgramAddress }
+    input: SetAuthorityCheckedInput<TAccountBufferOrProgramDataAccount, TAccountCurrentAuthority, TAccountNewAuthority>,
+    config?: { programAddress?: TProgramAddress },
 ): SetAuthorityCheckedInstruction<
-  TProgramAddress,
-  TAccountBufferOrProgramDataAccount,
-  TAccountCurrentAuthority,
-  TAccountNewAuthority
-> {
-  // Program address.
-  const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    bufferOrProgramDataAccount: {
-      value: input.bufferOrProgramDataAccount ?? null,
-      isWritable: true,
-    },
-    currentAuthority: {
-      value: input.currentAuthority ?? null,
-      isWritable: false,
-    },
-    newAuthority: { value: input.newAuthority ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.bufferOrProgramDataAccount),
-      getAccountMeta(accounts.currentAuthority),
-      getAccountMeta(accounts.newAuthority),
-    ],
-    data: getSetAuthorityCheckedInstructionDataEncoder().encode({}),
-    programAddress,
-  } as SetAuthorityCheckedInstruction<
     TProgramAddress,
     TAccountBufferOrProgramDataAccount,
     TAccountCurrentAuthority,
     TAccountNewAuthority
-  >);
+> {
+    // Program address.
+    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+
+    // Original accounts.
+    const originalAccounts = {
+        bufferOrProgramDataAccount: { value: input.bufferOrProgramDataAccount ?? null, isWritable: true },
+        currentAuthority: { value: input.currentAuthority ?? null, isWritable: false },
+        newAuthority: { value: input.newAuthority ?? null, isWritable: false },
+    };
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+    return Object.freeze({
+        accounts: [
+            getAccountMeta(accounts.bufferOrProgramDataAccount),
+            getAccountMeta(accounts.currentAuthority),
+            getAccountMeta(accounts.newAuthority),
+        ],
+        data: getSetAuthorityCheckedInstructionDataEncoder().encode({}),
+        programAddress,
+    } as SetAuthorityCheckedInstruction<
+        TProgramAddress,
+        TAccountBufferOrProgramDataAccount,
+        TAccountCurrentAuthority,
+        TAccountNewAuthority
+    >);
 }
 
 export type ParsedSetAuthorityCheckedInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Buffer or ProgramData account to change the authority of. */
-    bufferOrProgramDataAccount: TAccountMetas[0];
-    /** Current authority. */
-    currentAuthority: TAccountMetas[1];
-    /** New authority. */
-    newAuthority: TAccountMetas[2];
-  };
-  data: SetAuthorityCheckedInstructionData;
+    programAddress: Address<TProgram>;
+    accounts: {
+        /** Buffer or ProgramData account to change the authority of. */
+        bufferOrProgramDataAccount: TAccountMetas[0];
+        /** Current authority. */
+        currentAuthority: TAccountMetas[1];
+        /** New authority. */
+        newAuthority: TAccountMetas[2];
+    };
+    data: SetAuthorityCheckedInstructionData;
 };
 
 export function parseSetAuthorityCheckedInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
+    TProgram extends string,
+    TAccountMetas extends readonly AccountMeta[],
 >(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+    instruction: Instruction<TProgram> &
+        InstructionWithAccounts<TAccountMetas> &
+        InstructionWithData<ReadonlyUint8Array>,
 ): ParsedSetAuthorityCheckedInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 3) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      bufferOrProgramDataAccount: getNextAccount(),
-      currentAuthority: getNextAccount(),
-      newAuthority: getNextAccount(),
-    },
-    data: getSetAuthorityCheckedInstructionDataDecoder().decode(
-      instruction.data
-    ),
-  };
+    if (instruction.accounts.length < 3) {
+        // TODO: Coded error.
+        throw new Error('Not enough accounts');
+    }
+    let accountIndex = 0;
+    const getNextAccount = () => {
+        const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
+        accountIndex += 1;
+        return accountMeta;
+    };
+    return {
+        programAddress: instruction.programAddress,
+        accounts: {
+            bufferOrProgramDataAccount: getNextAccount(),
+            currentAuthority: getNextAccount(),
+            newAuthority: getNextAccount(),
+        },
+        data: getSetAuthorityCheckedInstructionDataDecoder().decode(instruction.data),
+    };
 }

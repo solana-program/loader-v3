@@ -7,26 +7,26 @@
  */
 
 import {
-  combineCodec,
-  getStructDecoder,
-  getStructEncoder,
-  getU32Decoder,
-  getU32Encoder,
-  transformEncoder,
-  type AccountMeta,
-  type AccountSignerMeta,
-  type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
-  type Instruction,
-  type InstructionWithAccounts,
-  type InstructionWithData,
-  type ReadonlyAccount,
-  type ReadonlySignerAccount,
-  type ReadonlyUint8Array,
-  type TransactionSigner,
-  type WritableAccount,
+    combineCodec,
+    getStructDecoder,
+    getStructEncoder,
+    getU32Decoder,
+    getU32Encoder,
+    transformEncoder,
+    type AccountMeta,
+    type AccountSignerMeta,
+    type Address,
+    type FixedSizeCodec,
+    type FixedSizeDecoder,
+    type FixedSizeEncoder,
+    type Instruction,
+    type InstructionWithAccounts,
+    type InstructionWithData,
+    type ReadonlyAccount,
+    type ReadonlySignerAccount,
+    type ReadonlyUint8Array,
+    type TransactionSigner,
+    type WritableAccount,
 } from '@solana/kit';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
@@ -34,191 +34,166 @@ import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 export const CLOSE_DISCRIMINATOR = 5;
 
 export function getCloseDiscriminatorBytes() {
-  return getU32Encoder().encode(CLOSE_DISCRIMINATOR);
+    return getU32Encoder().encode(CLOSE_DISCRIMINATOR);
 }
 
 export type CloseInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountBufferOrProgramDataAccount extends
-    | string
-    | AccountMeta<string> = string,
-  TAccountDestinationAccount extends string | AccountMeta<string> = string,
-  TAccountAuthority extends string | AccountMeta<string> = string,
-  TAccountProgramAccount extends string | AccountMeta<string> = string,
-  TRemainingAccounts extends readonly AccountMeta<string>[] = [],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountBufferOrProgramDataAccount extends string | AccountMeta<string> = string,
+    TAccountDestinationAccount extends string | AccountMeta<string> = string,
+    TAccountAuthority extends string | AccountMeta<string> = string,
+    TAccountProgramAccount extends string | AccountMeta<string> = string,
+    TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
-  InstructionWithData<ReadonlyUint8Array> &
-  InstructionWithAccounts<
-    [
-      TAccountBufferOrProgramDataAccount extends string
-        ? WritableAccount<TAccountBufferOrProgramDataAccount>
-        : TAccountBufferOrProgramDataAccount,
-      TAccountDestinationAccount extends string
-        ? WritableAccount<TAccountDestinationAccount>
-        : TAccountDestinationAccount,
-      TAccountAuthority extends string
-        ? ReadonlySignerAccount<TAccountAuthority> &
-            AccountSignerMeta<TAccountAuthority>
-        : TAccountAuthority,
-      TAccountProgramAccount extends string
-        ? ReadonlyAccount<TAccountProgramAccount>
-        : TAccountProgramAccount,
-      ...TRemainingAccounts,
-    ]
-  >;
+    InstructionWithData<ReadonlyUint8Array> &
+    InstructionWithAccounts<
+        [
+            TAccountBufferOrProgramDataAccount extends string
+                ? WritableAccount<TAccountBufferOrProgramDataAccount>
+                : TAccountBufferOrProgramDataAccount,
+            TAccountDestinationAccount extends string
+                ? WritableAccount<TAccountDestinationAccount>
+                : TAccountDestinationAccount,
+            TAccountAuthority extends string
+                ? ReadonlySignerAccount<TAccountAuthority> & AccountSignerMeta<TAccountAuthority>
+                : TAccountAuthority,
+            TAccountProgramAccount extends string ? ReadonlyAccount<TAccountProgramAccount> : TAccountProgramAccount,
+            ...TRemainingAccounts,
+        ]
+    >;
 
 export type CloseInstructionData = { discriminator: number };
 
 export type CloseInstructionDataArgs = {};
 
 export function getCloseInstructionDataEncoder(): FixedSizeEncoder<CloseInstructionDataArgs> {
-  return transformEncoder(
-    getStructEncoder([['discriminator', getU32Encoder()]]),
-    (value) => ({ ...value, discriminator: CLOSE_DISCRIMINATOR })
-  );
+    return transformEncoder(getStructEncoder([['discriminator', getU32Encoder()]]), value => ({
+        ...value,
+        discriminator: CLOSE_DISCRIMINATOR,
+    }));
 }
 
 export function getCloseInstructionDataDecoder(): FixedSizeDecoder<CloseInstructionData> {
-  return getStructDecoder([['discriminator', getU32Decoder()]]);
+    return getStructDecoder([['discriminator', getU32Decoder()]]);
 }
 
-export function getCloseInstructionDataCodec(): FixedSizeCodec<
-  CloseInstructionDataArgs,
-  CloseInstructionData
-> {
-  return combineCodec(
-    getCloseInstructionDataEncoder(),
-    getCloseInstructionDataDecoder()
-  );
+export function getCloseInstructionDataCodec(): FixedSizeCodec<CloseInstructionDataArgs, CloseInstructionData> {
+    return combineCodec(getCloseInstructionDataEncoder(), getCloseInstructionDataDecoder());
 }
 
 export type CloseInput<
-  TAccountBufferOrProgramDataAccount extends string = string,
-  TAccountDestinationAccount extends string = string,
-  TAccountAuthority extends string = string,
-  TAccountProgramAccount extends string = string,
+    TAccountBufferOrProgramDataAccount extends string = string,
+    TAccountDestinationAccount extends string = string,
+    TAccountAuthority extends string = string,
+    TAccountProgramAccount extends string = string,
 > = {
-  /** Buffer or ProgramData account to close. */
-  bufferOrProgramDataAccount: Address<TAccountBufferOrProgramDataAccount>;
-  /** Destination account for reclaimed lamports. */
-  destinationAccount: Address<TAccountDestinationAccount>;
-  /** Authority (optional). */
-  authority?: TransactionSigner<TAccountAuthority>;
-  /** Program account (optional). */
-  programAccount?: Address<TAccountProgramAccount>;
+    /** Buffer or ProgramData account to close. */
+    bufferOrProgramDataAccount: Address<TAccountBufferOrProgramDataAccount>;
+    /** Destination account for reclaimed lamports. */
+    destinationAccount: Address<TAccountDestinationAccount>;
+    /** Authority (optional). */
+    authority?: TransactionSigner<TAccountAuthority>;
+    /** Program account (optional). */
+    programAccount?: Address<TAccountProgramAccount>;
 };
 
 export function getCloseInstruction<
-  TAccountBufferOrProgramDataAccount extends string,
-  TAccountDestinationAccount extends string,
-  TAccountAuthority extends string,
-  TAccountProgramAccount extends string,
-  TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountBufferOrProgramDataAccount extends string,
+    TAccountDestinationAccount extends string,
+    TAccountAuthority extends string,
+    TAccountProgramAccount extends string,
+    TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
-  input: CloseInput<
-    TAccountBufferOrProgramDataAccount,
-    TAccountDestinationAccount,
-    TAccountAuthority,
-    TAccountProgramAccount
-  >,
-  config?: { programAddress?: TProgramAddress }
+    input: CloseInput<
+        TAccountBufferOrProgramDataAccount,
+        TAccountDestinationAccount,
+        TAccountAuthority,
+        TAccountProgramAccount
+    >,
+    config?: { programAddress?: TProgramAddress },
 ): CloseInstruction<
-  TProgramAddress,
-  TAccountBufferOrProgramDataAccount,
-  TAccountDestinationAccount,
-  TAccountAuthority,
-  TAccountProgramAccount
-> {
-  // Program address.
-  const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
-
-  // Original accounts.
-  const originalAccounts = {
-    bufferOrProgramDataAccount: {
-      value: input.bufferOrProgramDataAccount ?? null,
-      isWritable: true,
-    },
-    destinationAccount: {
-      value: input.destinationAccount ?? null,
-      isWritable: true,
-    },
-    authority: { value: input.authority ?? null, isWritable: false },
-    programAccount: { value: input.programAccount ?? null, isWritable: false },
-  };
-  const accounts = originalAccounts as Record<
-    keyof typeof originalAccounts,
-    ResolvedAccount
-  >;
-
-  const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
-  return Object.freeze({
-    accounts: [
-      getAccountMeta(accounts.bufferOrProgramDataAccount),
-      getAccountMeta(accounts.destinationAccount),
-      getAccountMeta(accounts.authority),
-      getAccountMeta(accounts.programAccount),
-    ],
-    data: getCloseInstructionDataEncoder().encode({}),
-    programAddress,
-  } as CloseInstruction<
     TProgramAddress,
     TAccountBufferOrProgramDataAccount,
     TAccountDestinationAccount,
     TAccountAuthority,
     TAccountProgramAccount
-  >);
+> {
+    // Program address.
+    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+
+    // Original accounts.
+    const originalAccounts = {
+        bufferOrProgramDataAccount: { value: input.bufferOrProgramDataAccount ?? null, isWritable: true },
+        destinationAccount: { value: input.destinationAccount ?? null, isWritable: true },
+        authority: { value: input.authority ?? null, isWritable: false },
+        programAccount: { value: input.programAccount ?? null, isWritable: false },
+    };
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+    return Object.freeze({
+        accounts: [
+            getAccountMeta(accounts.bufferOrProgramDataAccount),
+            getAccountMeta(accounts.destinationAccount),
+            getAccountMeta(accounts.authority),
+            getAccountMeta(accounts.programAccount),
+        ],
+        data: getCloseInstructionDataEncoder().encode({}),
+        programAddress,
+    } as CloseInstruction<
+        TProgramAddress,
+        TAccountBufferOrProgramDataAccount,
+        TAccountDestinationAccount,
+        TAccountAuthority,
+        TAccountProgramAccount
+    >);
 }
 
 export type ParsedCloseInstruction<
-  TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
-  TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
+    TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
+    TAccountMetas extends readonly AccountMeta[] = readonly AccountMeta[],
 > = {
-  programAddress: Address<TProgram>;
-  accounts: {
-    /** Buffer or ProgramData account to close. */
-    bufferOrProgramDataAccount: TAccountMetas[0];
-    /** Destination account for reclaimed lamports. */
-    destinationAccount: TAccountMetas[1];
-    /** Authority (optional). */
-    authority?: TAccountMetas[2] | undefined;
-    /** Program account (optional). */
-    programAccount?: TAccountMetas[3] | undefined;
-  };
-  data: CloseInstructionData;
+    programAddress: Address<TProgram>;
+    accounts: {
+        /** Buffer or ProgramData account to close. */
+        bufferOrProgramDataAccount: TAccountMetas[0];
+        /** Destination account for reclaimed lamports. */
+        destinationAccount: TAccountMetas[1];
+        /** Authority (optional). */
+        authority?: TAccountMetas[2] | undefined;
+        /** Program account (optional). */
+        programAccount?: TAccountMetas[3] | undefined;
+    };
+    data: CloseInstructionData;
 };
 
-export function parseCloseInstruction<
-  TProgram extends string,
-  TAccountMetas extends readonly AccountMeta[],
->(
-  instruction: Instruction<TProgram> &
-    InstructionWithAccounts<TAccountMetas> &
-    InstructionWithData<ReadonlyUint8Array>
+export function parseCloseInstruction<TProgram extends string, TAccountMetas extends readonly AccountMeta[]>(
+    instruction: Instruction<TProgram> &
+        InstructionWithAccounts<TAccountMetas> &
+        InstructionWithData<ReadonlyUint8Array>,
 ): ParsedCloseInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
-    // TODO: Coded error.
-    throw new Error('Not enough accounts');
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
-    accountIndex += 1;
-    return accountMeta;
-  };
-  const getNextOptionalAccount = () => {
-    const accountMeta = getNextAccount();
-    return accountMeta.address === LOADER_V3_PROGRAM_ADDRESS
-      ? undefined
-      : accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      bufferOrProgramDataAccount: getNextAccount(),
-      destinationAccount: getNextAccount(),
-      authority: getNextOptionalAccount(),
-      programAccount: getNextOptionalAccount(),
-    },
-    data: getCloseInstructionDataDecoder().decode(instruction.data),
-  };
+    if (instruction.accounts.length < 4) {
+        // TODO: Coded error.
+        throw new Error('Not enough accounts');
+    }
+    let accountIndex = 0;
+    const getNextAccount = () => {
+        const accountMeta = (instruction.accounts as TAccountMetas)[accountIndex]!;
+        accountIndex += 1;
+        return accountMeta;
+    };
+    const getNextOptionalAccount = () => {
+        const accountMeta = getNextAccount();
+        return accountMeta.address === LOADER_V3_PROGRAM_ADDRESS ? undefined : accountMeta;
+    };
+    return {
+        programAddress: instruction.programAddress,
+        accounts: {
+            bufferOrProgramDataAccount: getNextAccount(),
+            destinationAccount: getNextAccount(),
+            authority: getNextOptionalAccount(),
+            programAccount: getNextOptionalAccount(),
+        },
+        data: getCloseInstructionDataDecoder().decode(instruction.data),
+    };
 }
