@@ -10,6 +10,7 @@ test-sbf = []
 serde = ["dep:serde", "dep:serde_with"]
 
 [dependencies]
+kaigan = { version = "^0.4", features = ["serde"] }
 borsh = "^0.10"
 num-derive = "^0.4"
 num-traits = "^0.2"
