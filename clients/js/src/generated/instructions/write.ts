@@ -16,6 +16,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    getU64Decoder,
+    getU64Encoder,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -66,7 +68,7 @@ export function getWriteInstructionDataEncoder(): Encoder<WriteInstructionDataAr
         getStructEncoder([
             ['discriminator', getU32Encoder()],
             ['offset', getU32Encoder()],
-            ['bytes', addEncoderSizePrefix(getBytesEncoder(), getU32Encoder())],
+            ['bytes', addEncoderSizePrefix(getBytesEncoder(), getU64Encoder())],
         ]),
         value => ({ ...value, discriminator: WRITE_DISCRIMINATOR }),
     );
@@ -76,7 +78,7 @@ export function getWriteInstructionDataDecoder(): Decoder<WriteInstructionData> 
     return getStructDecoder([
         ['discriminator', getU32Decoder()],
         ['offset', getU32Decoder()],
-        ['bytes', addDecoderSizePrefix(getBytesDecoder(), getU32Decoder())],
+        ['bytes', addDecoderSizePrefix(getBytesDecoder(), getU64Decoder())],
     ]);
 }
 

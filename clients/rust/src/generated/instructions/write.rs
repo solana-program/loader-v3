@@ -4,7 +4,10 @@
 //!
 //! <https://github.com/codama-idl/codama>
 
-use borsh::{BorshDeserialize, BorshSerialize};
+use {
+    borsh::{BorshDeserialize, BorshSerialize},
+    kaigan::types::U64PrefixVec,
+};
 
 pub const WRITE_DISCRIMINATOR: u32 = 1;
 
@@ -76,7 +79,7 @@ impl Default for WriteInstructionData {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct WriteInstructionArgs {
     pub offset: u32,
-    pub bytes: Vec<u8>,
+    pub bytes: U64PrefixVec<u8>,
 }
 
 impl WriteInstructionArgs {
@@ -96,7 +99,7 @@ pub struct WriteBuilder {
     buffer_account: Option<solana_pubkey::Pubkey>,
     buffer_authority: Option<solana_pubkey::Pubkey>,
     offset: Option<u32>,
-    bytes: Option<Vec<u8>>,
+    bytes: Option<U64PrefixVec<u8>>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -122,7 +125,7 @@ impl WriteBuilder {
         self
     }
     #[inline(always)]
-    pub fn bytes(&mut self, bytes: Vec<u8>) -> &mut Self {
+    pub fn bytes(&mut self, bytes: U64PrefixVec<u8>) -> &mut Self {
         self.bytes = Some(bytes);
         self
     }
@@ -300,7 +303,7 @@ impl<'a, 'b> WriteCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn bytes(&mut self, bytes: Vec<u8>) -> &mut Self {
+    pub fn bytes(&mut self, bytes: U64PrefixVec<u8>) -> &mut Self {
         self.instruction.bytes = Some(bytes);
         self
     }
@@ -370,7 +373,7 @@ struct WriteCpiBuilderInstruction<'a, 'b> {
     buffer_account: Option<&'b solana_account_info::AccountInfo<'a>>,
     buffer_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
     offset: Option<u32>,
-    bytes: Option<Vec<u8>>,
+    bytes: Option<U64PrefixVec<u8>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }

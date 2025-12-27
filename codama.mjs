@@ -3,6 +3,7 @@ import { getToolchainArgument } from './scripts/utils.mjs';
 export default {
     idl: 'program/idl.json',
     before: [
+        './scripts/fix-write-data-prefix.mjs',
         {
             from: 'codama#updateProgramsVisitor',
             args: [
