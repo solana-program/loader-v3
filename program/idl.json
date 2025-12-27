@@ -374,7 +374,7 @@
   "metadata": {
     "origin": "shank",
     "address": "CoreBPFLoaderUpgradeab1e1111111111111111111",
-    "binaryVersion": "0.4.5",
+    "binaryVersion": "0.4.6",
     "libVersion": "^0.4.2"
   }
 }
