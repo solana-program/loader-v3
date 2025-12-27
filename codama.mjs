@@ -1,4 +1,5 @@
 import { getToolchainArgument } from './scripts/utils.mjs';
+import { assertIsNode, numberTypeNode } from 'codama';
 
 export default {
     idl: 'program/idl.json',
@@ -12,6 +13,21 @@ export default {
                         publicKey: 'BPFLoaderUpgradeab1e11111111111111111111111',
                     },
                 },
+            ],
+        },
+        {
+            from: 'codama#bottomUpTransformerVisitor',
+            args: [
+                [
+                    {
+                        select: '[instructionNode]write.[instructionArgumentNode]bytes',
+                        transform: node => {
+                            assertIsNode(node, 'instructionArgumentNode');
+                            assertIsNode(node.type, 'sizePrefixTypeNode');
+                            return { ...node, type: { ...node.type, prefix: numberTypeNode('u64') } };
+                        },
+                    },
+                ],
             ],
         },
     ],
