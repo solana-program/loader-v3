@@ -38,6 +38,7 @@
         "@solana/kit": "^5.0"
     },
     "devDependencies": {
+        "@solana-program/system": "^0.10.0",
         "@solana/eslint-config-solana": "^6.0.0",
         "@solana/kit": "^5.0",
         "@types/node": "^24",
