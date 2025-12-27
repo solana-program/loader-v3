@@ -58,8 +58,8 @@ pnpm generate
 
 The following clients are available for your programs. You may use the following links to learn more about each client.
 
-- [JS client](./clients/js)
-- [Rust client](./clients/rust)
+-   [JS client](./clients/js)
+-   [Rust client](./clients/rust)
 
 ## Starting and stopping the local validator
 
