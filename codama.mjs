@@ -1,5 +1,4 @@
-import { getToolchainArgument } from './scripts/utils.mjs';
-import { assertIsNode, numberTypeNode } from 'codama';
+import * as c from 'codama';
 
 export default {
     idl: 'program/idl.json',
@@ -22,9 +21,9 @@ export default {
                     {
                         select: '[instructionNode]write.[instructionArgumentNode]bytes',
                         transform: node => {
-                            assertIsNode(node, 'instructionArgumentNode');
-                            assertIsNode(node.type, 'sizePrefixTypeNode');
-                            return { ...node, type: { ...node.type, prefix: numberTypeNode('u64') } };
+                            c.assertIsNode(node, 'instructionArgumentNode');
+                            c.assertIsNode(node.type, 'sizePrefixTypeNode');
+                            return { ...node, type: { ...node.type, prefix: c.numberTypeNode('u64') } };
                         },
                     },
                 ],
@@ -43,7 +42,7 @@ export default {
                 {
                     crateFolder: 'clients/rust',
                     formatCode: true,
-                    toolchain: getToolchainArgument('format'),
+                    toolchain: '+nightly-2024-05-02',
                 },
             ],
         },

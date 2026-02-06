@@ -6,8 +6,24 @@
  * @see https://github.com/codama-idl/codama
  */
 
-import { containsBytes, getU32Encoder, type Address, type ReadonlyUint8Array } from '@solana/kit';
 import {
+    assertIsInstructionWithAccounts,
+    containsBytes,
+    getU32Encoder,
+    type Address,
+    type Instruction,
+    type InstructionWithData,
+    type ReadonlyUint8Array,
+} from '@solana/kit';
+import {
+    parseCloseInstruction,
+    parseDeployWithMaxDataLenInstruction,
+    parseExtendProgramInstruction,
+    parseInitializeBufferInstruction,
+    parseSetAuthorityCheckedInstruction,
+    parseSetAuthorityInstruction,
+    parseUpgradeInstruction,
+    parseWriteInstruction,
     type ParsedCloseInstruction,
     type ParsedDeployWithMaxDataLenInstruction,
     type ParsedExtendProgramInstruction,
@@ -72,3 +88,57 @@ export type ParsedLoaderV3Instruction<TProgram extends string = 'BPFLoaderUpgrad
     | ({ instructionType: LoaderV3Instruction.Close } & ParsedCloseInstruction<TProgram>)
     | ({ instructionType: LoaderV3Instruction.ExtendProgram } & ParsedExtendProgramInstruction<TProgram>)
     | ({ instructionType: LoaderV3Instruction.SetAuthorityChecked } & ParsedSetAuthorityCheckedInstruction<TProgram>);
+
+export function parseLoaderV3Instruction<TProgram extends string>(
+    instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
+): ParsedLoaderV3Instruction<TProgram> {
+    const instructionType = identifyLoaderV3Instruction(instruction);
+    switch (instructionType) {
+        case LoaderV3Instruction.InitializeBuffer: {
+            assertIsInstructionWithAccounts(instruction);
+            return {
+                instructionType: LoaderV3Instruction.InitializeBuffer,
+                ...parseInitializeBufferInstruction(instruction),
+            };
+        }
+        case LoaderV3Instruction.Write: {
+            assertIsInstructionWithAccounts(instruction);
+            return { instructionType: LoaderV3Instruction.Write, ...parseWriteInstruction(instruction) };
+        }
+        case LoaderV3Instruction.DeployWithMaxDataLen: {
+            assertIsInstructionWithAccounts(instruction);
+            return {
+                instructionType: LoaderV3Instruction.DeployWithMaxDataLen,
+                ...parseDeployWithMaxDataLenInstruction(instruction),
+            };
+        }
+        case LoaderV3Instruction.Upgrade: {
+            assertIsInstructionWithAccounts(instruction);
+            return { instructionType: LoaderV3Instruction.Upgrade, ...parseUpgradeInstruction(instruction) };
+        }
+        case LoaderV3Instruction.SetAuthority: {
+            assertIsInstructionWithAccounts(instruction);
+            return { instructionType: LoaderV3Instruction.SetAuthority, ...parseSetAuthorityInstruction(instruction) };
+        }
+        case LoaderV3Instruction.Close: {
+            assertIsInstructionWithAccounts(instruction);
+            return { instructionType: LoaderV3Instruction.Close, ...parseCloseInstruction(instruction) };
+        }
+        case LoaderV3Instruction.ExtendProgram: {
+            assertIsInstructionWithAccounts(instruction);
+            return {
+                instructionType: LoaderV3Instruction.ExtendProgram,
+                ...parseExtendProgramInstruction(instruction),
+            };
+        }
+        case LoaderV3Instruction.SetAuthorityChecked: {
+            assertIsInstructionWithAccounts(instruction);
+            return {
+                instructionType: LoaderV3Instruction.SetAuthorityChecked,
+                ...parseSetAuthorityCheckedInstruction(instruction),
+            };
+        }
+        default:
+            throw new Error(`Unrecognized instruction type: ${instructionType as string}`);
+    }
+}
