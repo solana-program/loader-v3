@@ -1,6 +1,6 @@
 import { getCreateAccountInstruction } from '@solana-program/system';
 import {
-    BaseTransactionMessage,
+    TransactionMessage,
     Commitment,
     Instruction,
     Rpc,
@@ -67,18 +67,14 @@ export const createDefaultTransactionMessage = async (
 
 export const signAndSendTransaction = async (
     client: Client,
-    transactionMessage: BaseTransactionMessage &
-        TransactionMessageWithFeePayer &
-        TransactionMessageWithBlockhashLifetime,
+    transactionMessage: TransactionMessage & TransactionMessageWithFeePayer & TransactionMessageWithBlockhashLifetime,
     commitment: Commitment = 'confirmed',
 ) => {
     const signedTransaction = await signTransactionMessageWithSigners(transactionMessage);
     const signature = getSignatureFromTransaction(signedTransaction);
     assertIsSendableTransaction(signedTransaction);
     assertIsTransactionWithBlockhashLifetime(signedTransaction);
-    await sendAndConfirmTransactionFactory(client)(signedTransaction, {
-        commitment,
-    });
+    await sendAndConfirmTransactionFactory(client)(signedTransaction, { commitment });
     return signature;
 };
 

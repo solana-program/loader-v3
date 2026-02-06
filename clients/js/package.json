@@ -35,19 +35,19 @@
     },
     "license": "MIT",
     "peerDependencies": {
-        "@solana/kit": "^5.0"
+        "@solana/kit": "^6.0.0"
     },
     "devDependencies": {
-        "@solana-program/system": "^0.10.0",
+        "@solana-program/system": "^0.11.0",
         "@solana/eslint-config-solana": "^6.0.0",
-        "@solana/kit": "^5.0",
-        "@types/node": "^24",
+        "@solana/kit": "^6.0.0",
+        "@types/node": "^25",
         "eslint": "^9.35.0",
         "prettier": "^3.7.4",
         "rimraf": "^6.1.2",
         "tsup": "^8.1.2",
         "typedoc": "^0.28.15",
-        "typescript": "^5.5.3",
+        "typescript": "^5.9.3",
         "vitest": "^4.0.15"
     }
 }
