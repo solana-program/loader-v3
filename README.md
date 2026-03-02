@@ -4,51 +4,19 @@
 <a href="https://www.npmjs.com/package/@solana-program/loader-v3"><img src="https://img.shields.io/npm/v/%40solana-program%loader-v3?logo=npm&color=377CC0" /></a>
 <a href="https://crates.io/crates/solana-loader-v3-program-client"><img src="https://img.shields.io/crates/v/solana-loader-v3-program-client?logo=rust" /></a>
 
-This template should help get you started developing Solana programs. Let's walk through this generated program repository and see what's included.
+This repository contains the IDL and generated clients for the Solana BPF Loader Upgradeable (v3) program.
 
 ## Project setup
 
-The first thing you'll want to do is install NPM dependencies which will allow you to access all the scripts and tools provided by this template.
+Install dependencies.
 
 ```sh
 pnpm install
 ```
 
-## Managing programs
-
-You'll notice a `program` folder in the root of this repository. This is where your generated Solana program is located.
-
-Whilst only one program gets generated, note that you can have as many programs as you like in this repository.
-Whenever you add a new program folder to this repository, remember to add it to the `members` array of your root `Cargo.toml` file.
-That way, your programs will be recognized by the following scripts that allow you to build, test, format and lint your programs respectively.
-
-```sh
-pnpm programs:build
-pnpm programs:test
-pnpm programs:format
-pnpm programs:lint
-```
-
-## Generating IDLs
-
-You may use the following command to generate the IDLs for your programs.
-
-```sh
-pnpm generate:idls
-```
-
-Depending on your program's framework, this will either use Shank or Anchor to generate the IDLs.
-Note that, to ensure IDLs are generated using the correct framework version, the specific version used by the program will be downloaded and used locally.
-
 ## Generating clients
 
-Once your programs' IDLs have been generated, you can generate clients for them using the following command.
-
-```sh
-pnpm generate:clients
-```
-
-Alternatively, you can use the `generate` script to generate both the IDLs and the clients at once.
+You may use the following command to generate the clients from the IDL.
 
 ```sh
 pnpm generate
@@ -79,24 +47,4 @@ Finally, you may stop the local validator using the following command.
 
 ```sh
 pnpm validator:stop
-```
-
-## Using external programs in your validator
-
-If your program requires any external programs to be running, you'll want to in your local validator.
-
-You can do this by adding their program addresses to the `program-dependencies` array in the `Cargo.toml` of your program.
-
-```toml
-program-dependencies = [
-  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s",
-  "noopb9bkMVfRPU8AsbpTUg8AQkHtKwMYZiFUjNRtMmV",
-]
-```
-
-Next time you build your program and run your validator, these external programs will automatically be fetched from mainnet and used in your local validator.
-
-```sh
-pnpm programs:build
-pnpm validator:restart
 ```
