@@ -14,6 +14,8 @@ import {
     getU32Encoder,
     getU64Decoder,
     getU64Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -31,12 +33,12 @@ import {
     type WritableAccount,
     type WritableSignerAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR = 2;
 
-export function getDeployWithMaxDataLenDiscriminatorBytes() {
+export function getDeployWithMaxDataLenDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR);
 }
 
@@ -180,7 +182,7 @@ export function getDeployWithMaxDataLenInstruction<
         systemProgram: { value: input.systemProgram ?? null, isWritable: false },
         authority: { value: input.authority ?? null, isWritable: false },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     // Original args.
     const args = { ...input };
@@ -202,14 +204,14 @@ export function getDeployWithMaxDataLenInstruction<
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
-            getAccountMeta(accounts.payerAccount),
-            getAccountMeta(accounts.programDataAccount),
-            getAccountMeta(accounts.programAccount),
-            getAccountMeta(accounts.bufferAccount),
-            getAccountMeta(accounts.rentSysvar),
-            getAccountMeta(accounts.clockSysvar),
-            getAccountMeta(accounts.systemProgram),
-            getAccountMeta(accounts.authority),
+            getAccountMeta('payerAccount', accounts.payerAccount),
+            getAccountMeta('programDataAccount', accounts.programDataAccount),
+            getAccountMeta('programAccount', accounts.programAccount),
+            getAccountMeta('bufferAccount', accounts.bufferAccount),
+            getAccountMeta('rentSysvar', accounts.rentSysvar),
+            getAccountMeta('clockSysvar', accounts.clockSysvar),
+            getAccountMeta('systemProgram', accounts.systemProgram),
+            getAccountMeta('authority', accounts.authority),
         ],
         data: getDeployWithMaxDataLenInstructionDataEncoder().encode(args as DeployWithMaxDataLenInstructionDataArgs),
         programAddress,
@@ -261,8 +263,10 @@ export function parseDeployWithMaxDataLenInstruction<
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedDeployWithMaxDataLenInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 8) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 8,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {

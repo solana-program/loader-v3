@@ -12,6 +12,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -28,12 +30,12 @@ import {
     type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const SET_AUTHORITY_DISCRIMINATOR = 4;
 
-export function getSetAuthorityDiscriminatorBytes() {
+export function getSetAuthorityDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(SET_AUTHORITY_DISCRIMINATOR);
 }
 
@@ -116,14 +118,14 @@ export function getSetAuthorityInstruction<
         currentAuthority: { value: input.currentAuthority ?? null, isWritable: false },
         newAuthority: { value: input.newAuthority ?? null, isWritable: false },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
-            getAccountMeta(accounts.bufferOrProgramDataAccount),
-            getAccountMeta(accounts.currentAuthority),
-            getAccountMeta(accounts.newAuthority),
+            getAccountMeta('bufferOrProgramDataAccount', accounts.bufferOrProgramDataAccount),
+            getAccountMeta('currentAuthority', accounts.currentAuthority),
+            getAccountMeta('newAuthority', accounts.newAuthority),
         ],
         data: getSetAuthorityInstructionDataEncoder().encode({}),
         programAddress,
@@ -157,8 +159,10 @@ export function parseSetAuthorityInstruction<TProgram extends string, TAccountMe
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedSetAuthorityInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 3) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 3,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {

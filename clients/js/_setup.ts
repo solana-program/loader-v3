@@ -85,7 +85,7 @@ export async function getCreateBufferInstructions(
         buffer: TransactionSigner;
         dataLength: number | bigint;
     },
-) {
+): Promise<Instruction[]> {
     const bufferSize = BUFFER_HEADER_SIZE + BigInt(input.dataLength);
     const bufferLamports = await client.rpc.getMinimumBalanceForRentExemption(bufferSize).send();
     return [

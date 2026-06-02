@@ -3,8 +3,8 @@ resolver = "2"
 members = ["clients/rust"]
 
 [workspace.metadata.cli]
-solana = "2.2.1"
+solana = "3.1.8"
 
 [workspace.metadata.toolchains]
-format = "nightly-2024-05-02"
-lint = "nightly-2024-05-02"
+format = "nightly-2026-01-22"
+lint = "nightly-2026-01-22"

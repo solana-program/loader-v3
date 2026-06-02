@@ -12,21 +12,21 @@ pub const DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR: u32 = 2;
 #[derive(Debug)]
 pub struct DeployWithMaxDataLen {
     /// Payer account that will pay to create the ProgramData account.
-    pub payer_account: solana_pubkey::Pubkey,
+    pub payer_account: solana_address::Address,
     /// ProgramData account (uninitialized).
-    pub program_data_account: solana_pubkey::Pubkey,
+    pub program_data_account: solana_address::Address,
     /// Program account (uninitialized).
-    pub program_account: solana_pubkey::Pubkey,
+    pub program_account: solana_address::Address,
     /// Buffer account where the program data has been written.
-    pub buffer_account: solana_pubkey::Pubkey,
+    pub buffer_account: solana_address::Address,
     /// Rent sysvar.
-    pub rent_sysvar: solana_pubkey::Pubkey,
+    pub rent_sysvar: solana_address::Address,
     /// Clock sysvar.
-    pub clock_sysvar: solana_pubkey::Pubkey,
+    pub clock_sysvar: solana_address::Address,
     /// System program.
-    pub system_program: solana_pubkey::Pubkey,
+    pub system_program: solana_address::Address,
     /// Authority.
-    pub authority: solana_pubkey::Pubkey,
+    pub authority: solana_address::Address,
 }
 
 impl DeployWithMaxDataLen {
@@ -92,7 +92,6 @@ impl DeployWithMaxDataLen {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DeployWithMaxDataLenInstructionData {
     discriminator: u32,
 }
@@ -114,7 +113,6 @@ impl Default for DeployWithMaxDataLenInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DeployWithMaxDataLenInstructionArgs {
     pub max_data_len: u64,
 }
@@ -142,14 +140,14 @@ impl DeployWithMaxDataLenInstructionArgs {
 ///   7. `[signer]` authority
 #[derive(Clone, Debug, Default)]
 pub struct DeployWithMaxDataLenBuilder {
-    payer_account: Option<solana_pubkey::Pubkey>,
-    program_data_account: Option<solana_pubkey::Pubkey>,
-    program_account: Option<solana_pubkey::Pubkey>,
-    buffer_account: Option<solana_pubkey::Pubkey>,
-    rent_sysvar: Option<solana_pubkey::Pubkey>,
-    clock_sysvar: Option<solana_pubkey::Pubkey>,
-    system_program: Option<solana_pubkey::Pubkey>,
-    authority: Option<solana_pubkey::Pubkey>,
+    payer_account: Option<solana_address::Address>,
+    program_data_account: Option<solana_address::Address>,
+    program_account: Option<solana_address::Address>,
+    buffer_account: Option<solana_address::Address>,
+    rent_sysvar: Option<solana_address::Address>,
+    clock_sysvar: Option<solana_address::Address>,
+    system_program: Option<solana_address::Address>,
+    authority: Option<solana_address::Address>,
     max_data_len: Option<u64>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
@@ -160,7 +158,7 @@ impl DeployWithMaxDataLenBuilder {
     }
     /// Payer account that will pay to create the ProgramData account.
     #[inline(always)]
-    pub fn payer_account(&mut self, payer_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn payer_account(&mut self, payer_account: solana_address::Address) -> &mut Self {
         self.payer_account = Some(payer_account);
         self
     }
@@ -168,47 +166,47 @@ impl DeployWithMaxDataLenBuilder {
     #[inline(always)]
     pub fn program_data_account(
         &mut self,
-        program_data_account: solana_pubkey::Pubkey,
+        program_data_account: solana_address::Address,
     ) -> &mut Self {
         self.program_data_account = Some(program_data_account);
         self
     }
     /// Program account (uninitialized).
     #[inline(always)]
-    pub fn program_account(&mut self, program_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn program_account(&mut self, program_account: solana_address::Address) -> &mut Self {
         self.program_account = Some(program_account);
         self
     }
     /// Buffer account where the program data has been written.
     #[inline(always)]
-    pub fn buffer_account(&mut self, buffer_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn buffer_account(&mut self, buffer_account: solana_address::Address) -> &mut Self {
         self.buffer_account = Some(buffer_account);
         self
     }
     /// `[optional account, default to
     /// 'SysvarRent111111111111111111111111111111111']` Rent sysvar.
     #[inline(always)]
-    pub fn rent_sysvar(&mut self, rent_sysvar: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn rent_sysvar(&mut self, rent_sysvar: solana_address::Address) -> &mut Self {
         self.rent_sysvar = Some(rent_sysvar);
         self
     }
     /// `[optional account, default to
     /// 'SysvarC1ock11111111111111111111111111111111']` Clock sysvar.
     #[inline(always)]
-    pub fn clock_sysvar(&mut self, clock_sysvar: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn clock_sysvar(&mut self, clock_sysvar: solana_address::Address) -> &mut Self {
         self.clock_sysvar = Some(clock_sysvar);
         self
     }
     /// `[optional account, default to '11111111111111111111111111111111']`
     /// System program.
     #[inline(always)]
-    pub fn system_program(&mut self, system_program: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn system_program(&mut self, system_program: solana_address::Address) -> &mut Self {
         self.system_program = Some(system_program);
         self
     }
     /// Authority.
     #[inline(always)]
-    pub fn authority(&mut self, authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn authority(&mut self, authority: solana_address::Address) -> &mut Self {
         self.authority = Some(authority);
         self
     }
@@ -241,15 +239,15 @@ impl DeployWithMaxDataLenBuilder {
                 .expect("program_data_account is not set"),
             program_account: self.program_account.expect("program_account is not set"),
             buffer_account: self.buffer_account.expect("buffer_account is not set"),
-            rent_sysvar: self.rent_sysvar.unwrap_or(solana_pubkey::pubkey!(
+            rent_sysvar: self.rent_sysvar.unwrap_or(solana_address::address!(
                 "SysvarRent111111111111111111111111111111111"
             )),
-            clock_sysvar: self.clock_sysvar.unwrap_or(solana_pubkey::pubkey!(
+            clock_sysvar: self.clock_sysvar.unwrap_or(solana_address::address!(
                 "SysvarC1ock11111111111111111111111111111111"
             )),
             system_program: self
                 .system_program
-                .unwrap_or(solana_pubkey::pubkey!("11111111111111111111111111111111")),
+                .unwrap_or(solana_address::address!("11111111111111111111111111111111")),
             authority: self.authority.expect("authority is not set"),
         };
         let args = DeployWithMaxDataLenInstructionArgs {

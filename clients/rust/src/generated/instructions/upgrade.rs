@@ -12,19 +12,19 @@ pub const UPGRADE_DISCRIMINATOR: u32 = 3;
 #[derive(Debug)]
 pub struct Upgrade {
     /// ProgramData account.
-    pub program_data_account: solana_pubkey::Pubkey,
+    pub program_data_account: solana_address::Address,
     /// Program account.
-    pub program_account: solana_pubkey::Pubkey,
+    pub program_account: solana_address::Address,
     /// Buffer account where the new program data has been written.
-    pub buffer_account: solana_pubkey::Pubkey,
+    pub buffer_account: solana_address::Address,
     /// Spill account.
-    pub spill_account: solana_pubkey::Pubkey,
+    pub spill_account: solana_address::Address,
     /// Rent sysvar.
-    pub rent_sysvar: solana_pubkey::Pubkey,
+    pub rent_sysvar: solana_address::Address,
     /// Clock sysvar.
-    pub clock_sysvar: solana_pubkey::Pubkey,
+    pub clock_sysvar: solana_address::Address,
     /// Authority.
-    pub authority: solana_pubkey::Pubkey,
+    pub authority: solana_address::Address,
 }
 
 impl Upgrade {
@@ -78,7 +78,6 @@ impl Upgrade {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct UpgradeInstructionData {
     discriminator: u32,
 }
@@ -114,13 +113,13 @@ impl Default for UpgradeInstructionData {
 ///   6. `[signer]` authority
 #[derive(Clone, Debug, Default)]
 pub struct UpgradeBuilder {
-    program_data_account: Option<solana_pubkey::Pubkey>,
-    program_account: Option<solana_pubkey::Pubkey>,
-    buffer_account: Option<solana_pubkey::Pubkey>,
-    spill_account: Option<solana_pubkey::Pubkey>,
-    rent_sysvar: Option<solana_pubkey::Pubkey>,
-    clock_sysvar: Option<solana_pubkey::Pubkey>,
-    authority: Option<solana_pubkey::Pubkey>,
+    program_data_account: Option<solana_address::Address>,
+    program_account: Option<solana_address::Address>,
+    buffer_account: Option<solana_address::Address>,
+    spill_account: Option<solana_address::Address>,
+    rent_sysvar: Option<solana_address::Address>,
+    clock_sysvar: Option<solana_address::Address>,
+    authority: Option<solana_address::Address>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -132,46 +131,46 @@ impl UpgradeBuilder {
     #[inline(always)]
     pub fn program_data_account(
         &mut self,
-        program_data_account: solana_pubkey::Pubkey,
+        program_data_account: solana_address::Address,
     ) -> &mut Self {
         self.program_data_account = Some(program_data_account);
         self
     }
     /// Program account.
     #[inline(always)]
-    pub fn program_account(&mut self, program_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn program_account(&mut self, program_account: solana_address::Address) -> &mut Self {
         self.program_account = Some(program_account);
         self
     }
     /// Buffer account where the new program data has been written.
     #[inline(always)]
-    pub fn buffer_account(&mut self, buffer_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn buffer_account(&mut self, buffer_account: solana_address::Address) -> &mut Self {
         self.buffer_account = Some(buffer_account);
         self
     }
     /// Spill account.
     #[inline(always)]
-    pub fn spill_account(&mut self, spill_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn spill_account(&mut self, spill_account: solana_address::Address) -> &mut Self {
         self.spill_account = Some(spill_account);
         self
     }
     /// `[optional account, default to
     /// 'SysvarRent111111111111111111111111111111111']` Rent sysvar.
     #[inline(always)]
-    pub fn rent_sysvar(&mut self, rent_sysvar: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn rent_sysvar(&mut self, rent_sysvar: solana_address::Address) -> &mut Self {
         self.rent_sysvar = Some(rent_sysvar);
         self
     }
     /// `[optional account, default to
     /// 'SysvarC1ock11111111111111111111111111111111']` Clock sysvar.
     #[inline(always)]
-    pub fn clock_sysvar(&mut self, clock_sysvar: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn clock_sysvar(&mut self, clock_sysvar: solana_address::Address) -> &mut Self {
         self.clock_sysvar = Some(clock_sysvar);
         self
     }
     /// Authority.
     #[inline(always)]
-    pub fn authority(&mut self, authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn authority(&mut self, authority: solana_address::Address) -> &mut Self {
         self.authority = Some(authority);
         self
     }
@@ -199,10 +198,10 @@ impl UpgradeBuilder {
             program_account: self.program_account.expect("program_account is not set"),
             buffer_account: self.buffer_account.expect("buffer_account is not set"),
             spill_account: self.spill_account.expect("spill_account is not set"),
-            rent_sysvar: self.rent_sysvar.unwrap_or(solana_pubkey::pubkey!(
+            rent_sysvar: self.rent_sysvar.unwrap_or(solana_address::address!(
                 "SysvarRent111111111111111111111111111111111"
             )),
-            clock_sysvar: self.clock_sysvar.unwrap_or(solana_pubkey::pubkey!(
+            clock_sysvar: self.clock_sysvar.unwrap_or(solana_address::address!(
                 "SysvarC1ock11111111111111111111111111111111"
             )),
             authority: self.authority.expect("authority is not set"),

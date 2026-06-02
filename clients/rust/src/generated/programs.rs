@@ -4,7 +4,7 @@
 //!
 //! <https://github.com/codama-idl/codama>
 
-use solana_pubkey::{pubkey, Pubkey};
+use solana_address::{address, Address};
 
 /// `loader_v3` program ID.
-pub const LOADER_V3_ID: Pubkey = pubkey!("BPFLoaderUpgradeab1e11111111111111111111111");
+pub const LOADER_V3_ID: Address = address!("BPFLoaderUpgradeab1e11111111111111111111111");

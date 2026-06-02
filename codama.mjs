@@ -33,16 +33,16 @@ export default {
     scripts: {
         js: {
             from: '@codama/renderers-js',
-            args: ['clients/js/src/generated', { packageFolder: 'clients/js', syncPackageJson: true }],
+            args: ['clients/js', { kitImportStrategy: 'rootOnly', syncPackageJson: true }],
         },
         rust: {
             from: '@codama/renderers-rust',
             args: [
-                'clients/rust/src/generated',
+                'clients/rust',
                 {
-                    crateFolder: 'clients/rust',
+                    anchorTraits: false,
                     formatCode: true,
-                    toolchain: '+nightly-2024-05-02',
+                    toolchain: '+nightly-2026-01-22',
                 },
             ],
         },

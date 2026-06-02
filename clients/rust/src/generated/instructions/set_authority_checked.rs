@@ -12,11 +12,11 @@ pub const SET_AUTHORITY_CHECKED_DISCRIMINATOR: u32 = 7;
 #[derive(Debug)]
 pub struct SetAuthorityChecked {
     /// Buffer or ProgramData account to change the authority of.
-    pub buffer_or_program_data_account: solana_pubkey::Pubkey,
+    pub buffer_or_program_data_account: solana_address::Address,
     /// Current authority.
-    pub current_authority: solana_pubkey::Pubkey,
+    pub current_authority: solana_address::Address,
     /// New authority.
-    pub new_authority: solana_pubkey::Pubkey,
+    pub new_authority: solana_address::Address,
 }
 
 impl SetAuthorityChecked {
@@ -56,7 +56,6 @@ impl SetAuthorityChecked {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SetAuthorityCheckedInstructionData {
     discriminator: u32,
 }
@@ -86,9 +85,9 @@ impl Default for SetAuthorityCheckedInstructionData {
 ///   2. `[signer]` new_authority
 #[derive(Clone, Debug, Default)]
 pub struct SetAuthorityCheckedBuilder {
-    buffer_or_program_data_account: Option<solana_pubkey::Pubkey>,
-    current_authority: Option<solana_pubkey::Pubkey>,
-    new_authority: Option<solana_pubkey::Pubkey>,
+    buffer_or_program_data_account: Option<solana_address::Address>,
+    current_authority: Option<solana_address::Address>,
+    new_authority: Option<solana_address::Address>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -100,20 +99,20 @@ impl SetAuthorityCheckedBuilder {
     #[inline(always)]
     pub fn buffer_or_program_data_account(
         &mut self,
-        buffer_or_program_data_account: solana_pubkey::Pubkey,
+        buffer_or_program_data_account: solana_address::Address,
     ) -> &mut Self {
         self.buffer_or_program_data_account = Some(buffer_or_program_data_account);
         self
     }
     /// Current authority.
     #[inline(always)]
-    pub fn current_authority(&mut self, current_authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn current_authority(&mut self, current_authority: solana_address::Address) -> &mut Self {
         self.current_authority = Some(current_authority);
         self
     }
     /// New authority.
     #[inline(always)]
-    pub fn new_authority(&mut self, new_authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn new_authority(&mut self, new_authority: solana_address::Address) -> &mut Self {
         self.new_authority = Some(new_authority);
         self
     }
