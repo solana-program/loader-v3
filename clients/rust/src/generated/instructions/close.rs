@@ -12,13 +12,13 @@ pub const CLOSE_DISCRIMINATOR: u32 = 5;
 #[derive(Debug)]
 pub struct Close {
     /// Buffer or ProgramData account to close.
-    pub buffer_or_program_data_account: solana_pubkey::Pubkey,
+    pub buffer_or_program_data_account: solana_address::Address,
     /// Destination account for reclaimed lamports.
-    pub destination_account: solana_pubkey::Pubkey,
+    pub destination_account: solana_address::Address,
     /// Authority (optional).
-    pub authority: Option<solana_pubkey::Pubkey>,
+    pub authority: Option<solana_address::Address>,
     /// Program account (optional).
-    pub program_account: Option<solana_pubkey::Pubkey>,
+    pub program_account: Option<solana_address::Address>,
 }
 
 impl Close {
@@ -73,7 +73,6 @@ impl Close {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CloseInstructionData {
     discriminator: u32,
 }
@@ -104,10 +103,10 @@ impl Default for CloseInstructionData {
 ///   3. `[optional]` program_account
 #[derive(Clone, Debug, Default)]
 pub struct CloseBuilder {
-    buffer_or_program_data_account: Option<solana_pubkey::Pubkey>,
-    destination_account: Option<solana_pubkey::Pubkey>,
-    authority: Option<solana_pubkey::Pubkey>,
-    program_account: Option<solana_pubkey::Pubkey>,
+    buffer_or_program_data_account: Option<solana_address::Address>,
+    destination_account: Option<solana_address::Address>,
+    authority: Option<solana_address::Address>,
+    program_account: Option<solana_address::Address>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -119,28 +118,34 @@ impl CloseBuilder {
     #[inline(always)]
     pub fn buffer_or_program_data_account(
         &mut self,
-        buffer_or_program_data_account: solana_pubkey::Pubkey,
+        buffer_or_program_data_account: solana_address::Address,
     ) -> &mut Self {
         self.buffer_or_program_data_account = Some(buffer_or_program_data_account);
         self
     }
     /// Destination account for reclaimed lamports.
     #[inline(always)]
-    pub fn destination_account(&mut self, destination_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn destination_account(
+        &mut self,
+        destination_account: solana_address::Address,
+    ) -> &mut Self {
         self.destination_account = Some(destination_account);
         self
     }
     /// `[optional account]`
     /// Authority (optional).
     #[inline(always)]
-    pub fn authority(&mut self, authority: Option<solana_pubkey::Pubkey>) -> &mut Self {
+    pub fn authority(&mut self, authority: Option<solana_address::Address>) -> &mut Self {
         self.authority = authority;
         self
     }
     /// `[optional account]`
     /// Program account (optional).
     #[inline(always)]
-    pub fn program_account(&mut self, program_account: Option<solana_pubkey::Pubkey>) -> &mut Self {
+    pub fn program_account(
+        &mut self,
+        program_account: Option<solana_address::Address>,
+    ) -> &mut Self {
         self.program_account = program_account;
         self
     }

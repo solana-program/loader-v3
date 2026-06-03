@@ -12,9 +12,9 @@ pub const INITIALIZE_BUFFER_DISCRIMINATOR: u32 = 0;
 #[derive(Debug)]
 pub struct InitializeBuffer {
     /// Source account to initialize.
-    pub source_account: solana_pubkey::Pubkey,
+    pub source_account: solana_address::Address,
     /// Buffer authority.
-    pub buffer_authority: solana_pubkey::Pubkey,
+    pub buffer_authority: solana_address::Address,
 }
 
 impl InitializeBuffer {
@@ -48,7 +48,6 @@ impl InitializeBuffer {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeBufferInstructionData {
     discriminator: u32,
 }
@@ -77,8 +76,8 @@ impl Default for InitializeBufferInstructionData {
 ///   1. `[]` buffer_authority
 #[derive(Clone, Debug, Default)]
 pub struct InitializeBufferBuilder {
-    source_account: Option<solana_pubkey::Pubkey>,
-    buffer_authority: Option<solana_pubkey::Pubkey>,
+    source_account: Option<solana_address::Address>,
+    buffer_authority: Option<solana_address::Address>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -88,13 +87,13 @@ impl InitializeBufferBuilder {
     }
     /// Source account to initialize.
     #[inline(always)]
-    pub fn source_account(&mut self, source_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn source_account(&mut self, source_account: solana_address::Address) -> &mut Self {
         self.source_account = Some(source_account);
         self
     }
     /// Buffer authority.
     #[inline(always)]
-    pub fn buffer_authority(&mut self, buffer_authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn buffer_authority(&mut self, buffer_authority: solana_address::Address) -> &mut Self {
         self.buffer_authority = Some(buffer_authority);
         self
     }

@@ -12,13 +12,13 @@ pub const EXTEND_PROGRAM_DISCRIMINATOR: u32 = 6;
 #[derive(Debug)]
 pub struct ExtendProgram {
     /// ProgramData account.
-    pub program_data_account: solana_pubkey::Pubkey,
+    pub program_data_account: solana_address::Address,
     /// Program account.
-    pub program_account: solana_pubkey::Pubkey,
+    pub program_account: solana_address::Address,
     /// System program (optional).
-    pub system_program: Option<solana_pubkey::Pubkey>,
+    pub system_program: Option<solana_address::Address>,
     /// Payer.
-    pub payer: Option<solana_pubkey::Pubkey>,
+    pub payer: Option<solana_address::Address>,
 }
 
 impl ExtendProgram {
@@ -77,7 +77,6 @@ impl ExtendProgram {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExtendProgramInstructionData {
     discriminator: u32,
 }
@@ -99,7 +98,6 @@ impl Default for ExtendProgramInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct ExtendProgramInstructionArgs {
     pub additional_bytes: u32,
 }
@@ -120,10 +118,10 @@ impl ExtendProgramInstructionArgs {
 ///   3. `[writable, signer, optional]` payer
 #[derive(Clone, Debug, Default)]
 pub struct ExtendProgramBuilder {
-    program_data_account: Option<solana_pubkey::Pubkey>,
-    program_account: Option<solana_pubkey::Pubkey>,
-    system_program: Option<solana_pubkey::Pubkey>,
-    payer: Option<solana_pubkey::Pubkey>,
+    program_data_account: Option<solana_address::Address>,
+    program_account: Option<solana_address::Address>,
+    system_program: Option<solana_address::Address>,
+    payer: Option<solana_address::Address>,
     additional_bytes: Option<u32>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
@@ -136,28 +134,28 @@ impl ExtendProgramBuilder {
     #[inline(always)]
     pub fn program_data_account(
         &mut self,
-        program_data_account: solana_pubkey::Pubkey,
+        program_data_account: solana_address::Address,
     ) -> &mut Self {
         self.program_data_account = Some(program_data_account);
         self
     }
     /// Program account.
     #[inline(always)]
-    pub fn program_account(&mut self, program_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn program_account(&mut self, program_account: solana_address::Address) -> &mut Self {
         self.program_account = Some(program_account);
         self
     }
     /// `[optional account]`
     /// System program (optional).
     #[inline(always)]
-    pub fn system_program(&mut self, system_program: Option<solana_pubkey::Pubkey>) -> &mut Self {
+    pub fn system_program(&mut self, system_program: Option<solana_address::Address>) -> &mut Self {
         self.system_program = system_program;
         self
     }
     /// `[optional account]`
     /// Payer.
     #[inline(always)]
-    pub fn payer(&mut self, payer: Option<solana_pubkey::Pubkey>) -> &mut Self {
+    pub fn payer(&mut self, payer: Option<solana_address::Address>) -> &mut Self {
         self.payer = payer;
         self
     }

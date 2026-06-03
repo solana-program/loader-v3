@@ -12,6 +12,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -28,12 +30,12 @@ import {
     type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const UPGRADE_DISCRIMINATOR = 3;
 
-export function getUpgradeDiscriminatorBytes() {
+export function getUpgradeDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(UPGRADE_DISCRIMINATOR);
 }
 
@@ -153,7 +155,7 @@ export function getUpgradeInstruction<
         clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
         authority: { value: input.authority ?? null, isWritable: false },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     // Resolve default values.
     if (!accounts.rentSysvar.value) {
@@ -168,13 +170,13 @@ export function getUpgradeInstruction<
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
-            getAccountMeta(accounts.programDataAccount),
-            getAccountMeta(accounts.programAccount),
-            getAccountMeta(accounts.bufferAccount),
-            getAccountMeta(accounts.spillAccount),
-            getAccountMeta(accounts.rentSysvar),
-            getAccountMeta(accounts.clockSysvar),
-            getAccountMeta(accounts.authority),
+            getAccountMeta('programDataAccount', accounts.programDataAccount),
+            getAccountMeta('programAccount', accounts.programAccount),
+            getAccountMeta('bufferAccount', accounts.bufferAccount),
+            getAccountMeta('spillAccount', accounts.spillAccount),
+            getAccountMeta('rentSysvar', accounts.rentSysvar),
+            getAccountMeta('clockSysvar', accounts.clockSysvar),
+            getAccountMeta('authority', accounts.authority),
         ],
         data: getUpgradeInstructionDataEncoder().encode({}),
         programAddress,
@@ -220,8 +222,10 @@ export function parseUpgradeInstruction<TProgram extends string, TAccountMetas e
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedUpgradeInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 7) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 7,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {

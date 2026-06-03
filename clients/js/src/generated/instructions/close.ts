@@ -12,6 +12,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -28,12 +30,12 @@ import {
     type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const CLOSE_DISCRIMINATOR = 5;
 
-export function getCloseDiscriminatorBytes() {
+export function getCloseDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(CLOSE_DISCRIMINATOR);
 }
 
@@ -128,15 +130,15 @@ export function getCloseInstruction<
         authority: { value: input.authority ?? null, isWritable: false },
         programAccount: { value: input.programAccount ?? null, isWritable: false },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
-            getAccountMeta(accounts.bufferOrProgramDataAccount),
-            getAccountMeta(accounts.destinationAccount),
-            getAccountMeta(accounts.authority),
-            getAccountMeta(accounts.programAccount),
+            getAccountMeta('bufferOrProgramDataAccount', accounts.bufferOrProgramDataAccount),
+            getAccountMeta('destinationAccount', accounts.destinationAccount),
+            getAccountMeta('authority', accounts.authority),
+            getAccountMeta('programAccount', accounts.programAccount),
         ],
         data: getCloseInstructionDataEncoder().encode({}),
         programAddress,
@@ -173,8 +175,10 @@ export function parseCloseInstruction<TProgram extends string, TAccountMetas ext
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedCloseInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 4) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 4,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {

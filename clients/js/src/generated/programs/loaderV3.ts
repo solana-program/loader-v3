@@ -9,13 +9,28 @@
 import {
     assertIsInstructionWithAccounts,
     containsBytes,
+    extendClient,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION,
+    SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE,
+    SolanaError,
     type Address,
+    type ClientWithTransactionPlanning,
+    type ClientWithTransactionSending,
     type Instruction,
     type InstructionWithData,
     type ReadonlyUint8Array,
 } from '@solana/kit';
+import { addSelfPlanAndSendFunctions, type SelfPlanAndSendFunctions } from '@solana/kit/program-client-core';
 import {
+    getCloseInstruction,
+    getDeployWithMaxDataLenInstruction,
+    getExtendProgramInstruction,
+    getInitializeBufferInstruction,
+    getSetAuthorityCheckedInstruction,
+    getSetAuthorityInstruction,
+    getUpgradeInstruction,
+    getWriteInstruction,
     parseCloseInstruction,
     parseDeployWithMaxDataLenInstruction,
     parseExtendProgramInstruction,
@@ -24,6 +39,10 @@ import {
     parseSetAuthorityInstruction,
     parseUpgradeInstruction,
     parseWriteInstruction,
+    type CloseInput,
+    type DeployWithMaxDataLenInput,
+    type ExtendProgramInput,
+    type InitializeBufferInput,
     type ParsedCloseInstruction,
     type ParsedDeployWithMaxDataLenInstruction,
     type ParsedExtendProgramInstruction,
@@ -32,6 +51,10 @@ import {
     type ParsedSetAuthorityInstruction,
     type ParsedUpgradeInstruction,
     type ParsedWriteInstruction,
+    type SetAuthorityCheckedInput,
+    type SetAuthorityInput,
+    type UpgradeInput,
+    type WriteInput,
 } from '../instructions';
 
 export const LOADER_V3_PROGRAM_ADDRESS =
@@ -76,7 +99,10 @@ export function identifyLoaderV3Instruction(
     if (containsBytes(data, getU32Encoder().encode(7), 0)) {
         return LoaderV3Instruction.SetAuthorityChecked;
     }
-    throw new Error('The provided instruction could not be identified as a loaderV3 instruction.');
+    throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION, {
+        instructionData: data,
+        programName: 'loaderV3',
+    });
 }
 
 export type ParsedLoaderV3Instruction<TProgram extends string = 'BPFLoaderUpgradeab1e11111111111111111111111'> =
@@ -139,6 +165,56 @@ export function parseLoaderV3Instruction<TProgram extends string>(
             };
         }
         default:
-            throw new Error(`Unrecognized instruction type: ${instructionType as string}`);
+            throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE, {
+                instructionType: instructionType as string,
+                programName: 'loaderV3',
+            });
     }
+}
+
+export type LoaderV3Plugin = { instructions: LoaderV3PluginInstructions };
+
+export type LoaderV3PluginInstructions = {
+    initializeBuffer: (
+        input: InitializeBufferInput,
+    ) => ReturnType<typeof getInitializeBufferInstruction> & SelfPlanAndSendFunctions;
+    write: (input: WriteInput) => ReturnType<typeof getWriteInstruction> & SelfPlanAndSendFunctions;
+    deployWithMaxDataLen: (
+        input: DeployWithMaxDataLenInput,
+    ) => ReturnType<typeof getDeployWithMaxDataLenInstruction> & SelfPlanAndSendFunctions;
+    upgrade: (input: UpgradeInput) => ReturnType<typeof getUpgradeInstruction> & SelfPlanAndSendFunctions;
+    setAuthority: (
+        input: SetAuthorityInput,
+    ) => ReturnType<typeof getSetAuthorityInstruction> & SelfPlanAndSendFunctions;
+    close: (input: CloseInput) => ReturnType<typeof getCloseInstruction> & SelfPlanAndSendFunctions;
+    extendProgram: (
+        input: ExtendProgramInput,
+    ) => ReturnType<typeof getExtendProgramInstruction> & SelfPlanAndSendFunctions;
+    setAuthorityChecked: (
+        input: SetAuthorityCheckedInput,
+    ) => ReturnType<typeof getSetAuthorityCheckedInstruction> & SelfPlanAndSendFunctions;
+};
+
+export type LoaderV3PluginRequirements = ClientWithTransactionPlanning & ClientWithTransactionSending;
+
+export function loaderV3Program() {
+    return <T extends LoaderV3PluginRequirements>(client: T): Omit<T, 'loaderV3'> & { loaderV3: LoaderV3Plugin } => {
+        return extendClient(client, {
+            loaderV3: <LoaderV3Plugin>{
+                instructions: {
+                    initializeBuffer: input =>
+                        addSelfPlanAndSendFunctions(client, getInitializeBufferInstruction(input)),
+                    write: input => addSelfPlanAndSendFunctions(client, getWriteInstruction(input)),
+                    deployWithMaxDataLen: input =>
+                        addSelfPlanAndSendFunctions(client, getDeployWithMaxDataLenInstruction(input)),
+                    upgrade: input => addSelfPlanAndSendFunctions(client, getUpgradeInstruction(input)),
+                    setAuthority: input => addSelfPlanAndSendFunctions(client, getSetAuthorityInstruction(input)),
+                    close: input => addSelfPlanAndSendFunctions(client, getCloseInstruction(input)),
+                    extendProgram: input => addSelfPlanAndSendFunctions(client, getExtendProgramInstruction(input)),
+                    setAuthorityChecked: input =>
+                        addSelfPlanAndSendFunctions(client, getSetAuthorityCheckedInstruction(input)),
+                },
+            },
+        });
+    };
 }

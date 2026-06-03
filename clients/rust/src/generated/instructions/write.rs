@@ -6,7 +6,7 @@
 
 use {
     borsh::{BorshDeserialize, BorshSerialize},
-    kaigan::types::U64PrefixVec,
+    spl_collections::U64PrefixedVec,
 };
 
 pub const WRITE_DISCRIMINATOR: u32 = 1;
@@ -15,9 +15,9 @@ pub const WRITE_DISCRIMINATOR: u32 = 1;
 #[derive(Debug)]
 pub struct Write {
     /// Buffer account.
-    pub buffer_account: solana_pubkey::Pubkey,
+    pub buffer_account: solana_address::Address,
     /// Buffer authority.
-    pub buffer_authority: solana_pubkey::Pubkey,
+    pub buffer_authority: solana_address::Address,
 }
 
 impl Write {
@@ -54,7 +54,6 @@ impl Write {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct WriteInstructionData {
     discriminator: u32,
 }
@@ -76,10 +75,9 @@ impl Default for WriteInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct WriteInstructionArgs {
     pub offset: u32,
-    pub bytes: U64PrefixVec<u8>,
+    pub bytes: U64PrefixedVec<u8>,
 }
 
 impl WriteInstructionArgs {
@@ -96,10 +94,10 @@ impl WriteInstructionArgs {
 ///   1. `[signer]` buffer_authority
 #[derive(Clone, Debug, Default)]
 pub struct WriteBuilder {
-    buffer_account: Option<solana_pubkey::Pubkey>,
-    buffer_authority: Option<solana_pubkey::Pubkey>,
+    buffer_account: Option<solana_address::Address>,
+    buffer_authority: Option<solana_address::Address>,
     offset: Option<u32>,
-    bytes: Option<U64PrefixVec<u8>>,
+    bytes: Option<U64PrefixedVec<u8>>,
     __remaining_accounts: Vec<solana_instruction::AccountMeta>,
 }
 
@@ -109,13 +107,13 @@ impl WriteBuilder {
     }
     /// Buffer account.
     #[inline(always)]
-    pub fn buffer_account(&mut self, buffer_account: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn buffer_account(&mut self, buffer_account: solana_address::Address) -> &mut Self {
         self.buffer_account = Some(buffer_account);
         self
     }
     /// Buffer authority.
     #[inline(always)]
-    pub fn buffer_authority(&mut self, buffer_authority: solana_pubkey::Pubkey) -> &mut Self {
+    pub fn buffer_authority(&mut self, buffer_authority: solana_address::Address) -> &mut Self {
         self.buffer_authority = Some(buffer_authority);
         self
     }
@@ -125,7 +123,7 @@ impl WriteBuilder {
         self
     }
     #[inline(always)]
-    pub fn bytes(&mut self, bytes: U64PrefixVec<u8>) -> &mut Self {
+    pub fn bytes(&mut self, bytes: U64PrefixedVec<u8>) -> &mut Self {
         self.bytes = Some(bytes);
         self
     }
@@ -303,7 +301,7 @@ impl<'a, 'b> WriteCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn bytes(&mut self, bytes: U64PrefixVec<u8>) -> &mut Self {
+    pub fn bytes(&mut self, bytes: U64PrefixedVec<u8>) -> &mut Self {
         self.instruction.bytes = Some(bytes);
         self
     }
@@ -373,7 +371,7 @@ struct WriteCpiBuilderInstruction<'a, 'b> {
     buffer_account: Option<&'b solana_account_info::AccountInfo<'a>>,
     buffer_authority: Option<&'b solana_account_info::AccountInfo<'a>>,
     offset: Option<u32>,
-    bytes: Option<U64PrefixVec<u8>>,
+    bytes: Option<U64PrefixedVec<u8>>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(&'b solana_account_info::AccountInfo<'a>, bool, bool)>,
 }

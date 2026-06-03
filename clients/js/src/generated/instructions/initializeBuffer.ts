@@ -12,6 +12,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type Address,
@@ -25,12 +27,12 @@ import {
     type ReadonlyUint8Array,
     type WritableAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const INITIALIZE_BUFFER_DISCRIMINATOR = 0;
 
-export function getInitializeBufferDiscriminatorBytes() {
+export function getInitializeBufferDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(INITIALIZE_BUFFER_DISCRIMINATOR);
 }
 
@@ -97,11 +99,14 @@ export function getInitializeBufferInstruction<
         sourceAccount: { value: input.sourceAccount ?? null, isWritable: true },
         bufferAuthority: { value: input.bufferAuthority ?? null, isWritable: false },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
-        accounts: [getAccountMeta(accounts.sourceAccount), getAccountMeta(accounts.bufferAuthority)],
+        accounts: [
+            getAccountMeta('sourceAccount', accounts.sourceAccount),
+            getAccountMeta('bufferAuthority', accounts.bufferAuthority),
+        ],
         data: getInitializeBufferInstructionDataEncoder().encode({}),
         programAddress,
     } as InitializeBufferInstruction<TProgramAddress, TAccountSourceAccount, TAccountBufferAuthority>);
@@ -127,8 +132,10 @@ export function parseInitializeBufferInstruction<TProgram extends string, TAccou
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedInitializeBufferInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 2) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 2,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {

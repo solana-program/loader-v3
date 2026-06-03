@@ -12,6 +12,8 @@ import {
     getStructEncoder,
     getU32Decoder,
     getU32Encoder,
+    SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
+    SolanaError,
     transformEncoder,
     type AccountMeta,
     type AccountSignerMeta,
@@ -28,12 +30,12 @@ import {
     type WritableAccount,
     type WritableSignerAccount,
 } from '@solana/kit';
+import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
-import { getAccountMetaFactory, type ResolvedAccount } from '../shared';
 
 export const EXTEND_PROGRAM_DISCRIMINATOR = 6;
 
-export function getExtendProgramDiscriminatorBytes() {
+export function getExtendProgramDiscriminatorBytes(): ReadonlyUint8Array {
     return getU32Encoder().encode(EXTEND_PROGRAM_DISCRIMINATOR);
 }
 
@@ -131,7 +133,7 @@ export function getExtendProgramInstruction<
         systemProgram: { value: input.systemProgram ?? null, isWritable: false },
         payer: { value: input.payer ?? null, isWritable: true },
     };
-    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedAccount>;
+    const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     // Original args.
     const args = { ...input };
@@ -139,10 +141,10 @@ export function getExtendProgramInstruction<
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
-            getAccountMeta(accounts.programDataAccount),
-            getAccountMeta(accounts.programAccount),
-            getAccountMeta(accounts.systemProgram),
-            getAccountMeta(accounts.payer),
+            getAccountMeta('programDataAccount', accounts.programDataAccount),
+            getAccountMeta('programAccount', accounts.programAccount),
+            getAccountMeta('systemProgram', accounts.systemProgram),
+            getAccountMeta('payer', accounts.payer),
         ],
         data: getExtendProgramInstructionDataEncoder().encode(args as ExtendProgramInstructionDataArgs),
         programAddress,
@@ -179,8 +181,10 @@ export function parseExtendProgramInstruction<TProgram extends string, TAccountM
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedExtendProgramInstruction<TProgram, TAccountMetas> {
     if (instruction.accounts.length < 4) {
-        // TODO: Coded error.
-        throw new Error('Not enough accounts');
+        throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
+            actualAccountMetas: instruction.accounts.length,
+            expectedAccountMetas: 4,
+        });
     }
     let accountIndex = 0;
     const getNextAccount = () => {
