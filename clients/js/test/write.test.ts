@@ -1,30 +1,25 @@
 import { assertAccountExists, fetchEncodedAccount, generateKeyPairSigner } from '@solana/kit';
 import { expect, it } from 'vitest';
-import {
-    BUFFER_HEADER_SIZE,
-    createDefaultSolanaClient,
-    createDefaultTransactionMessage,
-    generateKeyPairSignerWithSol,
-    getCreateBufferInstructions,
-    signAndSendTransaction,
-} from '../_setup';
-import { getWriteInstruction } from '../src';
+import { BUFFER_HEADER_SIZE, createTestClient, getCreateBufferInstructions } from '../_setup';
 
 it('can write to a buffer account', async () => {
-    const client = createDefaultSolanaClient();
-    const [payer, buffer] = await Promise.all([generateKeyPairSignerWithSol(client), generateKeyPairSigner()]);
+    const client = await createTestClient();
+    const buffer = await generateKeyPairSigner();
 
-    const createBufferInstructions = await getCreateBufferInstructions(client, { payer, buffer, dataLength: 10 });
-    const transactionMessage = await createDefaultTransactionMessage(client, payer, [
+    const createBufferInstructions = await getCreateBufferInstructions(client, {
+        payer: client.payer,
+        buffer,
+        dataLength: 10,
+    });
+    await client.sendTransaction([
         ...createBufferInstructions,
-        getWriteInstruction({
+        client.loaderV3.instructions.write({
             bufferAccount: buffer.address,
-            bufferAuthority: payer,
+            bufferAuthority: client.payer,
             offset: 3,
             bytes: new Uint8Array([0xff, 0xff, 0xff, 0xff]),
         }),
     ]);
-    await signAndSendTransaction(client, transactionMessage);
 
     const bufferAccount = await fetchEncodedAccount(client.rpc, buffer.address);
     assertAccountExists(bufferAccount);

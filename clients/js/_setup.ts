@@ -1,104 +1,46 @@
-import { getCreateAccountInstruction } from '@solana-program/system';
-import {
-    TransactionMessage,
-    Commitment,
-    Instruction,
-    Rpc,
-    RpcSubscriptions,
-    SolanaRpcApi,
-    SolanaRpcSubscriptionsApi,
-    TransactionMessageWithBlockhashLifetime,
-    TransactionMessageWithFeePayer,
-    TransactionSigner,
-    airdropFactory,
-    appendTransactionMessageInstructions,
-    assertIsSendableTransaction,
-    assertIsTransactionWithBlockhashLifetime,
-    createSolanaRpc,
-    createSolanaRpcSubscriptions,
-    createTransactionMessage,
-    generateKeyPairSigner,
-    getSignatureFromTransaction,
-    lamports,
-    pipe,
-    sendAndConfirmTransactionFactory,
-    setTransactionMessageFeePayerSigner,
-    setTransactionMessageLifetimeUsingBlockhash,
-    signTransactionMessageWithSigners,
-} from '@solana/kit';
-import { getInitializeBufferInstruction, LOADER_V3_PROGRAM_ADDRESS } from './src';
+import { systemProgram } from '@solana-program/system';
+import { Instruction, TransactionSigner, createClient, lamports } from '@solana/kit';
+import { litesvm } from '@solana/kit-plugin-litesvm';
+import { airdropSigner, generatedSigner } from '@solana/kit-plugin-signer';
+
+import { LOADER_V3_PROGRAM_ADDRESS, loaderV3Program } from './src';
 
 export const BUFFER_HEADER_SIZE = 37n;
 
-type Client = {
-    rpc: Rpc<SolanaRpcApi>;
-    rpcSubscriptions: RpcSubscriptions<SolanaRpcSubscriptionsApi>;
+// The loader-v3 program (`BPFLoaderUpgradeable`) is a native runtime program
+// that is available in LiteSVM as a builtin, so no `.so` needs to be loaded.
+export const createTestClient = () => {
+    return createClient()
+        .use(generatedSigner())
+        .use(litesvm())
+        .use(airdropSigner(lamports(1_000_000_000n)))
+        .use(systemProgram())
+        .use(loaderV3Program());
 };
 
-export const createDefaultSolanaClient = (): Client => {
-    const rpc = createSolanaRpc('http://127.0.0.1:8899');
-    const rpcSubscriptions = createSolanaRpcSubscriptions('ws://127.0.0.1:8900');
-    return { rpc, rpcSubscriptions };
-};
+export type TestClient = Awaited<ReturnType<typeof createTestClient>>;
 
-export const generateKeyPairSignerWithSol = async (client: Client, putativeLamports: bigint = 1_000_000_000n) => {
-    const signer = await generateKeyPairSigner();
-    await airdropFactory(client)({
-        recipientAddress: signer.address,
-        lamports: lamports(putativeLamports),
-        commitment: 'confirmed',
-    });
-    return signer;
-};
-
-export const createDefaultTransactionMessage = async (
-    client: Client,
-    feePayer: TransactionSigner,
-    instructions?: Instruction[],
-) => {
-    const { value: latestBlockhash } = await client.rpc.getLatestBlockhash().send();
-    return pipe(
-        createTransactionMessage({ version: 0 }),
-        tx => setTransactionMessageFeePayerSigner(feePayer, tx),
-        tx => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, tx),
-        tx => (instructions ? appendTransactionMessageInstructions(instructions, tx) : tx),
-    );
-};
-
-export const signAndSendTransaction = async (
-    client: Client,
-    transactionMessage: TransactionMessage & TransactionMessageWithFeePayer & TransactionMessageWithBlockhashLifetime,
-    commitment: Commitment = 'confirmed',
-) => {
-    const signedTransaction = await signTransactionMessageWithSigners(transactionMessage);
-    const signature = getSignatureFromTransaction(signedTransaction);
-    assertIsSendableTransaction(signedTransaction);
-    assertIsTransactionWithBlockhashLifetime(signedTransaction);
-    await sendAndConfirmTransactionFactory(client)(signedTransaction, { commitment });
-    return signature;
-};
-
-export async function getCreateBufferInstructions(
-    client: Client,
+export const getCreateBufferInstructions = async (
+    client: TestClient,
     input: {
         payer: TransactionSigner;
         buffer: TransactionSigner;
         dataLength: number | bigint;
     },
-): Promise<Instruction[]> {
+): Promise<Instruction[]> => {
     const bufferSize = BUFFER_HEADER_SIZE + BigInt(input.dataLength);
     const bufferLamports = await client.rpc.getMinimumBalanceForRentExemption(bufferSize).send();
     return [
-        getCreateAccountInstruction({
+        client.system.instructions.createAccount({
             payer: input.payer,
             newAccount: input.buffer,
             lamports: bufferLamports,
             space: bufferSize,
             programAddress: LOADER_V3_PROGRAM_ADDRESS,
         }),
-        getInitializeBufferInstruction({
+        client.loaderV3.instructions.initializeBuffer({
             sourceAccount: input.buffer.address,
             bufferAuthority: input.payer.address,
         }),
     ];
-}
+};
