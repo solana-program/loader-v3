@@ -1,7 +1,10 @@
+import { execSync } from 'node:child_process';
 import * as c from 'codama';
 
+const nightly = execSync('make --no-print-directory rust-toolchain-nightly').toString().trim();
+
 export default {
-    idl: 'program/idl.json',
+    idl: 'idl.json',
     before: [
         {
             from: 'codama#updateProgramsVisitor',
@@ -42,7 +45,7 @@ export default {
                 {
                     anchorTraits: false,
                     formatCode: true,
-                    toolchain: '+nightly-2026-01-22',
+                    toolchain: `+${nightly}`,
                 },
             ],
         },
