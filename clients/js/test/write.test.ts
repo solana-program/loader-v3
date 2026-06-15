@@ -1,5 +1,6 @@
 import { assertAccountExists, fetchEncodedAccount, generateKeyPairSigner } from '@solana/kit';
 import { expect, it } from 'vitest';
+
 import { BUFFER_HEADER_SIZE, createTestClient, getCreateBufferInstructions } from '../_setup';
 
 it('can write to a buffer account', async () => {
