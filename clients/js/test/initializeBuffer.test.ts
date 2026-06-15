@@ -1,5 +1,6 @@
 import { fetchEncodedAccount, generateKeyPairSigner, getAddressEncoder } from '@solana/kit';
 import { expect, it } from 'vitest';
+
 import { BUFFER_HEADER_SIZE, createTestClient } from '../_setup';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../src';
 
