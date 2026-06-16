@@ -2,7 +2,15 @@
     "name": "@solana-program/loader-v3",
     "version": "0.3.0",
     "description": "JavaScript client for the Solana Loader V3 program",
+    "homepage": "https://github.com/solana-program/loader-v3#readme",
+    "bugs": {
+        "url": "https://github.com/solana-program/loader-v3/issues"
+    },
     "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/solana-program/loader-v3.git"
+    },
     "files": [
         "./dist/src",
         "./dist/types",
