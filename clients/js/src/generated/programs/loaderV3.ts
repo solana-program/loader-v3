@@ -17,6 +17,7 @@ import {
     type Address,
     type ClientWithTransactionPlanning,
     type ClientWithTransactionSending,
+    type ExtendedClient,
     type Instruction,
     type InstructionWithData,
     type ReadonlyUint8Array,
@@ -172,7 +173,11 @@ export function parseLoaderV3Instruction<TProgram extends string>(
     }
 }
 
-export type LoaderV3Plugin = { instructions: LoaderV3PluginInstructions };
+export type LoaderV3Plugin = {
+    instructions: LoaderV3PluginInstructions;
+    identifyInstruction: typeof identifyLoaderV3Instruction;
+    parseInstruction: typeof parseLoaderV3Instruction;
+};
 
 export type LoaderV3PluginInstructions = {
     initializeBuffer: (
@@ -198,7 +203,7 @@ export type LoaderV3PluginInstructions = {
 export type LoaderV3PluginRequirements = ClientWithTransactionPlanning & ClientWithTransactionSending;
 
 export function loaderV3Program() {
-    return <T extends LoaderV3PluginRequirements>(client: T): Omit<T, 'loaderV3'> & { loaderV3: LoaderV3Plugin } => {
+    return <T extends LoaderV3PluginRequirements>(client: T): ExtendedClient<T, { loaderV3: LoaderV3Plugin }> => {
         return extendClient(client, {
             loaderV3: <LoaderV3Plugin>{
                 instructions: {
@@ -214,6 +219,8 @@ export function loaderV3Program() {
                     setAuthorityChecked: input =>
                         addSelfPlanAndSendFunctions(client, getSetAuthorityCheckedInstruction(input)),
                 },
+                identifyInstruction: identifyLoaderV3Instruction,
+                parseInstruction: parseLoaderV3Instruction,
             },
         });
     };
