@@ -29,11 +29,17 @@ import {
     type ReadonlyAccount,
     type ReadonlySignerAccount,
     type ReadonlyUint8Array,
-    type TransactionSigner,
     type WritableAccount,
     type WritableSignerAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type InstructionSignerInput,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const DEPLOY_WITH_MAX_DATA_LEN_DISCRIMINATOR = 2;
@@ -107,43 +113,43 @@ export function getDeployWithMaxDataLenInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type DeployWithMaxDataLenInput<
-    TAccountPayerAccount extends string = string,
-    TAccountProgramDataAccount extends string = string,
-    TAccountProgramAccount extends string = string,
-    TAccountBufferAccount extends string = string,
-    TAccountRentSysvar extends string = string,
-    TAccountClockSysvar extends string = string,
-    TAccountSystemProgram extends string = string,
-    TAccountAuthority extends string = string,
+    TAccountPayerAccount extends InstructionSignerInput = InstructionSignerInput,
+    TAccountProgramDataAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountBufferAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountRentSysvar extends InstructionAccountInput = InstructionAccountInput,
+    TAccountClockSysvar extends InstructionAccountInput = InstructionAccountInput,
+    TAccountSystemProgram extends InstructionAccountInput = InstructionAccountInput,
+    TAccountAuthority extends InstructionSignerInput = InstructionSignerInput,
 > = {
     /** Payer account that will pay to create the ProgramData account. */
-    payerAccount: TransactionSigner<TAccountPayerAccount>;
+    payerAccount: TAccountPayerAccount;
     /** ProgramData account (uninitialized). */
-    programDataAccount: Address<TAccountProgramDataAccount>;
+    programDataAccount: TAccountProgramDataAccount;
     /** Program account (uninitialized). */
-    programAccount: Address<TAccountProgramAccount>;
+    programAccount: TAccountProgramAccount;
     /** Buffer account where the program data has been written. */
-    bufferAccount: Address<TAccountBufferAccount>;
+    bufferAccount: TAccountBufferAccount;
     /** Rent sysvar. */
-    rentSysvar?: Address<TAccountRentSysvar>;
+    rentSysvar?: TAccountRentSysvar;
     /** Clock sysvar. */
-    clockSysvar?: Address<TAccountClockSysvar>;
+    clockSysvar?: TAccountClockSysvar;
     /** System program. */
-    systemProgram?: Address<TAccountSystemProgram>;
+    systemProgram?: TAccountSystemProgram;
     /** Authority. */
-    authority: TransactionSigner<TAccountAuthority>;
+    authority: TAccountAuthority;
     maxDataLen: DeployWithMaxDataLenInstructionDataArgs['maxDataLen'];
 };
 
 export function getDeployWithMaxDataLenInstruction<
-    TAccountPayerAccount extends string,
-    TAccountProgramDataAccount extends string,
-    TAccountProgramAccount extends string,
-    TAccountBufferAccount extends string,
-    TAccountRentSysvar extends string,
-    TAccountClockSysvar extends string,
-    TAccountSystemProgram extends string,
-    TAccountAuthority extends string,
+    TAccountPayerAccount extends InstructionSignerInput,
+    TAccountProgramDataAccount extends InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput,
+    TAccountBufferAccount extends InstructionAccountInput,
+    TAccountRentSysvar extends InstructionAccountInput,
+    TAccountClockSysvar extends InstructionAccountInput,
+    TAccountSystemProgram extends InstructionAccountInput,
+    TAccountAuthority extends InstructionSignerInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: DeployWithMaxDataLenInput<
@@ -159,28 +165,34 @@ export function getDeployWithMaxDataLenInstruction<
     config?: { programAddress?: TProgramAddress },
 ): DeployWithMaxDataLenInstruction<
     TProgramAddress,
-    TAccountPayerAccount,
-    TAccountProgramDataAccount,
-    TAccountProgramAccount,
-    TAccountBufferAccount,
-    TAccountRentSysvar,
-    TAccountClockSysvar,
-    TAccountSystemProgram,
-    TAccountAuthority
+    ResolvedInstructionAccountMeta<TAccountPayerAccount, InstructionAccountInputAddress<TAccountPayerAccount>>,
+    ResolvedInstructionAccountMeta<
+        TAccountProgramDataAccount,
+        InstructionAccountInputAddress<TAccountProgramDataAccount>
+    >,
+    ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+    ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+    ResolvedInstructionAccountMeta<TAccountRentSysvar, InstructionAccountInputAddress<TAccountRentSysvar>>,
+    ResolvedInstructionAccountMeta<TAccountClockSysvar, InstructionAccountInputAddress<TAccountClockSysvar>>,
+    ResolvedInstructionAccountMeta<TAccountSystemProgram, InstructionAccountInputAddress<TAccountSystemProgram>>,
+    ResolvedInstructionAccountMeta<TAccountAuthority, InstructionAccountInputAddress<TAccountAuthority>>
 > {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        payerAccount: { value: input.payerAccount ?? null, isWritable: true },
-        programDataAccount: { value: input.programDataAccount ?? null, isWritable: true },
-        programAccount: { value: input.programAccount ?? null, isWritable: true },
-        bufferAccount: { value: input.bufferAccount ?? null, isWritable: true },
-        rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
-        clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
-        systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-        authority: { value: input.authority ?? null, isWritable: false },
+        payerAccount: { value: input.payerAccount ?? null, isSigner: true, isWritable: true },
+        programDataAccount: { value: input.programDataAccount ?? null, isSigner: false, isWritable: true },
+        programAccount: { value: input.programAccount ?? null, isSigner: false, isWritable: true },
+        bufferAccount: { value: input.bufferAccount ?? null, isSigner: false, isWritable: true },
+        rentSysvar: { value: input.rentSysvar ?? null, isSigner: false, isWritable: false },
+        clockSysvar: { value: input.clockSysvar ?? null, isSigner: false, isWritable: false },
+        systemProgram: { value: input.systemProgram ?? null, isSigner: false, isWritable: false },
+        authority: { value: input.authority ?? null, isSigner: true, isWritable: false },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
@@ -201,7 +213,6 @@ export function getDeployWithMaxDataLenInstruction<
             '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
     }
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('payerAccount', accounts.payerAccount),
@@ -217,14 +228,17 @@ export function getDeployWithMaxDataLenInstruction<
         programAddress,
     } as DeployWithMaxDataLenInstruction<
         TProgramAddress,
-        TAccountPayerAccount,
-        TAccountProgramDataAccount,
-        TAccountProgramAccount,
-        TAccountBufferAccount,
-        TAccountRentSysvar,
-        TAccountClockSysvar,
-        TAccountSystemProgram,
-        TAccountAuthority
+        ResolvedInstructionAccountMeta<TAccountPayerAccount, InstructionAccountInputAddress<TAccountPayerAccount>>,
+        ResolvedInstructionAccountMeta<
+            TAccountProgramDataAccount,
+            InstructionAccountInputAddress<TAccountProgramDataAccount>
+        >,
+        ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+        ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+        ResolvedInstructionAccountMeta<TAccountRentSysvar, InstructionAccountInputAddress<TAccountRentSysvar>>,
+        ResolvedInstructionAccountMeta<TAccountClockSysvar, InstructionAccountInputAddress<TAccountClockSysvar>>,
+        ResolvedInstructionAccountMeta<TAccountSystemProgram, InstructionAccountInputAddress<TAccountSystemProgram>>,
+        ResolvedInstructionAccountMeta<TAccountAuthority, InstructionAccountInputAddress<TAccountAuthority>>
     >);
 }
 

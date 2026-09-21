@@ -26,11 +26,17 @@ import {
     type InstructionWithData,
     type ReadonlyAccount,
     type ReadonlyUint8Array,
-    type TransactionSigner,
     type WritableAccount,
     type WritableSignerAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type InstructionSignerInput,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const EXTEND_PROGRAM_DISCRIMINATOR = 6;
@@ -91,54 +97,59 @@ export function getExtendProgramInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type ExtendProgramInput<
-    TAccountProgramDataAccount extends string = string,
-    TAccountProgramAccount extends string = string,
-    TAccountSystemProgram extends string = string,
-    TAccountPayer extends string = string,
+    TAccountProgramDataAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountSystemProgram extends InstructionAccountInput = InstructionAccountInput,
+    TAccountPayer extends InstructionSignerInput = InstructionSignerInput,
 > = {
     /** ProgramData account. */
-    programDataAccount: Address<TAccountProgramDataAccount>;
+    programDataAccount: TAccountProgramDataAccount;
     /** Program account. */
-    programAccount: Address<TAccountProgramAccount>;
+    programAccount: TAccountProgramAccount;
     /** System program (optional). */
-    systemProgram?: Address<TAccountSystemProgram>;
+    systemProgram?: TAccountSystemProgram;
     /** Payer. */
-    payer?: TransactionSigner<TAccountPayer>;
+    payer?: TAccountPayer;
     additionalBytes: ExtendProgramInstructionDataArgs['additionalBytes'];
 };
 
 export function getExtendProgramInstruction<
-    TAccountProgramDataAccount extends string,
-    TAccountProgramAccount extends string,
-    TAccountSystemProgram extends string,
-    TAccountPayer extends string,
+    TAccountProgramDataAccount extends InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput,
+    TAccountSystemProgram extends InstructionAccountInput,
+    TAccountPayer extends InstructionSignerInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: ExtendProgramInput<TAccountProgramDataAccount, TAccountProgramAccount, TAccountSystemProgram, TAccountPayer>,
     config?: { programAddress?: TProgramAddress },
 ): ExtendProgramInstruction<
     TProgramAddress,
-    TAccountProgramDataAccount,
-    TAccountProgramAccount,
-    TAccountSystemProgram,
-    TAccountPayer
+    ResolvedInstructionAccountMeta<
+        TAccountProgramDataAccount,
+        InstructionAccountInputAddress<TAccountProgramDataAccount>
+    >,
+    ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+    ResolvedInstructionAccountMeta<TAccountSystemProgram, InstructionAccountInputAddress<TAccountSystemProgram>>,
+    ResolvedInstructionAccountMeta<TAccountPayer, InstructionAccountInputAddress<TAccountPayer>>
 > {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        programDataAccount: { value: input.programDataAccount ?? null, isWritable: true },
-        programAccount: { value: input.programAccount ?? null, isWritable: true },
-        systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-        payer: { value: input.payer ?? null, isWritable: true },
+        programDataAccount: { value: input.programDataAccount ?? null, isSigner: false, isWritable: true },
+        programAccount: { value: input.programAccount ?? null, isSigner: false, isWritable: true },
+        systemProgram: { value: input.systemProgram ?? null, isSigner: false, isWritable: false },
+        payer: { value: input.payer ?? null, isSigner: true, isWritable: true },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     // Original args.
     const args = { ...input };
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('programDataAccount', accounts.programDataAccount),
@@ -150,10 +161,13 @@ export function getExtendProgramInstruction<
         programAddress,
     } as ExtendProgramInstruction<
         TProgramAddress,
-        TAccountProgramDataAccount,
-        TAccountProgramAccount,
-        TAccountSystemProgram,
-        TAccountPayer
+        ResolvedInstructionAccountMeta<
+            TAccountProgramDataAccount,
+            InstructionAccountInputAddress<TAccountProgramDataAccount>
+        >,
+        ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+        ResolvedInstructionAccountMeta<TAccountSystemProgram, InstructionAccountInputAddress<TAccountSystemProgram>>,
+        ResolvedInstructionAccountMeta<TAccountPayer, InstructionAccountInputAddress<TAccountPayer>>
     >);
 }
 
