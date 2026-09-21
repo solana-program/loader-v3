@@ -27,10 +27,16 @@ import {
     type ReadonlyAccount,
     type ReadonlySignerAccount,
     type ReadonlyUint8Array,
-    type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type InstructionSignerInput,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const UPGRADE_DISCRIMINATOR = 3;
@@ -88,38 +94,38 @@ export function getUpgradeInstructionDataCodec(): FixedSizeCodec<UpgradeInstruct
 }
 
 export type UpgradeInput<
-    TAccountProgramDataAccount extends string = string,
-    TAccountProgramAccount extends string = string,
-    TAccountBufferAccount extends string = string,
-    TAccountSpillAccount extends string = string,
-    TAccountRentSysvar extends string = string,
-    TAccountClockSysvar extends string = string,
-    TAccountAuthority extends string = string,
+    TAccountProgramDataAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountBufferAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountSpillAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountRentSysvar extends InstructionAccountInput = InstructionAccountInput,
+    TAccountClockSysvar extends InstructionAccountInput = InstructionAccountInput,
+    TAccountAuthority extends InstructionSignerInput = InstructionSignerInput,
 > = {
     /** ProgramData account. */
-    programDataAccount: Address<TAccountProgramDataAccount>;
+    programDataAccount: TAccountProgramDataAccount;
     /** Program account. */
-    programAccount: Address<TAccountProgramAccount>;
+    programAccount: TAccountProgramAccount;
     /** Buffer account where the new program data has been written. */
-    bufferAccount: Address<TAccountBufferAccount>;
+    bufferAccount: TAccountBufferAccount;
     /** Spill account. */
-    spillAccount: Address<TAccountSpillAccount>;
+    spillAccount: TAccountSpillAccount;
     /** Rent sysvar. */
-    rentSysvar?: Address<TAccountRentSysvar>;
+    rentSysvar?: TAccountRentSysvar;
     /** Clock sysvar. */
-    clockSysvar?: Address<TAccountClockSysvar>;
+    clockSysvar?: TAccountClockSysvar;
     /** Authority. */
-    authority: TransactionSigner<TAccountAuthority>;
+    authority: TAccountAuthority;
 };
 
 export function getUpgradeInstruction<
-    TAccountProgramDataAccount extends string,
-    TAccountProgramAccount extends string,
-    TAccountBufferAccount extends string,
-    TAccountSpillAccount extends string,
-    TAccountRentSysvar extends string,
-    TAccountClockSysvar extends string,
-    TAccountAuthority extends string,
+    TAccountProgramDataAccount extends InstructionAccountInput,
+    TAccountProgramAccount extends InstructionAccountInput,
+    TAccountBufferAccount extends InstructionAccountInput,
+    TAccountSpillAccount extends InstructionAccountInput,
+    TAccountRentSysvar extends InstructionAccountInput,
+    TAccountClockSysvar extends InstructionAccountInput,
+    TAccountAuthority extends InstructionSignerInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: UpgradeInput<
@@ -134,26 +140,32 @@ export function getUpgradeInstruction<
     config?: { programAddress?: TProgramAddress },
 ): UpgradeInstruction<
     TProgramAddress,
-    TAccountProgramDataAccount,
-    TAccountProgramAccount,
-    TAccountBufferAccount,
-    TAccountSpillAccount,
-    TAccountRentSysvar,
-    TAccountClockSysvar,
-    TAccountAuthority
+    ResolvedInstructionAccountMeta<
+        TAccountProgramDataAccount,
+        InstructionAccountInputAddress<TAccountProgramDataAccount>
+    >,
+    ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+    ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+    ResolvedInstructionAccountMeta<TAccountSpillAccount, InstructionAccountInputAddress<TAccountSpillAccount>>,
+    ResolvedInstructionAccountMeta<TAccountRentSysvar, InstructionAccountInputAddress<TAccountRentSysvar>>,
+    ResolvedInstructionAccountMeta<TAccountClockSysvar, InstructionAccountInputAddress<TAccountClockSysvar>>,
+    ResolvedInstructionAccountMeta<TAccountAuthority, InstructionAccountInputAddress<TAccountAuthority>>
 > {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        programDataAccount: { value: input.programDataAccount ?? null, isWritable: true },
-        programAccount: { value: input.programAccount ?? null, isWritable: true },
-        bufferAccount: { value: input.bufferAccount ?? null, isWritable: true },
-        spillAccount: { value: input.spillAccount ?? null, isWritable: true },
-        rentSysvar: { value: input.rentSysvar ?? null, isWritable: false },
-        clockSysvar: { value: input.clockSysvar ?? null, isWritable: false },
-        authority: { value: input.authority ?? null, isWritable: false },
+        programDataAccount: { value: input.programDataAccount ?? null, isSigner: false, isWritable: true },
+        programAccount: { value: input.programAccount ?? null, isSigner: false, isWritable: true },
+        bufferAccount: { value: input.bufferAccount ?? null, isSigner: false, isWritable: true },
+        spillAccount: { value: input.spillAccount ?? null, isSigner: false, isWritable: true },
+        rentSysvar: { value: input.rentSysvar ?? null, isSigner: false, isWritable: false },
+        clockSysvar: { value: input.clockSysvar ?? null, isSigner: false, isWritable: false },
+        authority: { value: input.authority ?? null, isSigner: true, isWritable: false },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
@@ -167,7 +179,6 @@ export function getUpgradeInstruction<
             'SysvarC1ock11111111111111111111111111111111' as Address<'SysvarC1ock11111111111111111111111111111111'>;
     }
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('programDataAccount', accounts.programDataAccount),
@@ -182,13 +193,16 @@ export function getUpgradeInstruction<
         programAddress,
     } as UpgradeInstruction<
         TProgramAddress,
-        TAccountProgramDataAccount,
-        TAccountProgramAccount,
-        TAccountBufferAccount,
-        TAccountSpillAccount,
-        TAccountRentSysvar,
-        TAccountClockSysvar,
-        TAccountAuthority
+        ResolvedInstructionAccountMeta<
+            TAccountProgramDataAccount,
+            InstructionAccountInputAddress<TAccountProgramDataAccount>
+        >,
+        ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>,
+        ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+        ResolvedInstructionAccountMeta<TAccountSpillAccount, InstructionAccountInputAddress<TAccountSpillAccount>>,
+        ResolvedInstructionAccountMeta<TAccountRentSysvar, InstructionAccountInputAddress<TAccountRentSysvar>>,
+        ResolvedInstructionAccountMeta<TAccountClockSysvar, InstructionAccountInputAddress<TAccountClockSysvar>>,
+        ResolvedInstructionAccountMeta<TAccountAuthority, InstructionAccountInputAddress<TAccountAuthority>>
     >);
 }
 

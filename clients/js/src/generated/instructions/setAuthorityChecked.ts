@@ -26,10 +26,16 @@ import {
     type InstructionWithData,
     type ReadonlySignerAccount,
     type ReadonlyUint8Array,
-    type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type InstructionSignerInput,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const SET_AUTHORITY_CHECKED_DISCRIMINATOR = 7;
@@ -84,44 +90,53 @@ export function getSetAuthorityCheckedInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type SetAuthorityCheckedInput<
-    TAccountBufferOrProgramDataAccount extends string = string,
-    TAccountCurrentAuthority extends string = string,
-    TAccountNewAuthority extends string = string,
+    TAccountBufferOrProgramDataAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountCurrentAuthority extends InstructionSignerInput = InstructionSignerInput,
+    TAccountNewAuthority extends InstructionSignerInput = InstructionSignerInput,
 > = {
     /** Buffer or ProgramData account to change the authority of. */
-    bufferOrProgramDataAccount: Address<TAccountBufferOrProgramDataAccount>;
+    bufferOrProgramDataAccount: TAccountBufferOrProgramDataAccount;
     /** Current authority. */
-    currentAuthority: TransactionSigner<TAccountCurrentAuthority>;
+    currentAuthority: TAccountCurrentAuthority;
     /** New authority. */
-    newAuthority: TransactionSigner<TAccountNewAuthority>;
+    newAuthority: TAccountNewAuthority;
 };
 
 export function getSetAuthorityCheckedInstruction<
-    TAccountBufferOrProgramDataAccount extends string,
-    TAccountCurrentAuthority extends string,
-    TAccountNewAuthority extends string,
+    TAccountBufferOrProgramDataAccount extends InstructionAccountInput,
+    TAccountCurrentAuthority extends InstructionSignerInput,
+    TAccountNewAuthority extends InstructionSignerInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: SetAuthorityCheckedInput<TAccountBufferOrProgramDataAccount, TAccountCurrentAuthority, TAccountNewAuthority>,
     config?: { programAddress?: TProgramAddress },
 ): SetAuthorityCheckedInstruction<
     TProgramAddress,
-    TAccountBufferOrProgramDataAccount,
-    TAccountCurrentAuthority,
-    TAccountNewAuthority
+    ResolvedInstructionAccountMeta<
+        TAccountBufferOrProgramDataAccount,
+        InstructionAccountInputAddress<TAccountBufferOrProgramDataAccount>
+    >,
+    ResolvedInstructionAccountMeta<TAccountCurrentAuthority, InstructionAccountInputAddress<TAccountCurrentAuthority>>,
+    ResolvedInstructionAccountMeta<TAccountNewAuthority, InstructionAccountInputAddress<TAccountNewAuthority>>
 > {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        bufferOrProgramDataAccount: { value: input.bufferOrProgramDataAccount ?? null, isWritable: true },
-        currentAuthority: { value: input.currentAuthority ?? null, isWritable: false },
-        newAuthority: { value: input.newAuthority ?? null, isWritable: false },
+        bufferOrProgramDataAccount: {
+            value: input.bufferOrProgramDataAccount ?? null,
+            isSigner: false,
+            isWritable: true,
+        },
+        currentAuthority: { value: input.currentAuthority ?? null, isSigner: true, isWritable: false },
+        newAuthority: { value: input.newAuthority ?? null, isSigner: true, isWritable: false },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('bufferOrProgramDataAccount', accounts.bufferOrProgramDataAccount),
@@ -132,9 +147,15 @@ export function getSetAuthorityCheckedInstruction<
         programAddress,
     } as SetAuthorityCheckedInstruction<
         TProgramAddress,
-        TAccountBufferOrProgramDataAccount,
-        TAccountCurrentAuthority,
-        TAccountNewAuthority
+        ResolvedInstructionAccountMeta<
+            TAccountBufferOrProgramDataAccount,
+            InstructionAccountInputAddress<TAccountBufferOrProgramDataAccount>
+        >,
+        ResolvedInstructionAccountMeta<
+            TAccountCurrentAuthority,
+            InstructionAccountInputAddress<TAccountCurrentAuthority>
+        >,
+        ResolvedInstructionAccountMeta<TAccountNewAuthority, InstructionAccountInputAddress<TAccountNewAuthority>>
     >);
 }
 

@@ -32,10 +32,16 @@ import {
     type InstructionWithData,
     type ReadonlySignerAccount,
     type ReadonlyUint8Array,
-    type TransactionSigner,
     type WritableAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type InstructionSignerInput,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const WRITE_DISCRIMINATOR = 1;
@@ -89,39 +95,45 @@ export function getWriteInstructionDataCodec(): Codec<WriteInstructionDataArgs, 
 }
 
 export type WriteInput<
-    TAccountBufferAccount extends string = string,
-    TAccountBufferAuthority extends string = string,
+    TAccountBufferAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountBufferAuthority extends InstructionSignerInput = InstructionSignerInput,
 > = {
     /** Buffer account. */
-    bufferAccount: Address<TAccountBufferAccount>;
+    bufferAccount: TAccountBufferAccount;
     /** Buffer authority. */
-    bufferAuthority: TransactionSigner<TAccountBufferAuthority>;
+    bufferAuthority: TAccountBufferAuthority;
     offset: WriteInstructionDataArgs['offset'];
     bytes: WriteInstructionDataArgs['bytes'];
 };
 
 export function getWriteInstruction<
-    TAccountBufferAccount extends string,
-    TAccountBufferAuthority extends string,
+    TAccountBufferAccount extends InstructionAccountInput,
+    TAccountBufferAuthority extends InstructionSignerInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: WriteInput<TAccountBufferAccount, TAccountBufferAuthority>,
     config?: { programAddress?: TProgramAddress },
-): WriteInstruction<TProgramAddress, TAccountBufferAccount, TAccountBufferAuthority> {
+): WriteInstruction<
+    TProgramAddress,
+    ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+    ResolvedInstructionAccountMeta<TAccountBufferAuthority, InstructionAccountInputAddress<TAccountBufferAuthority>>
+> {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        bufferAccount: { value: input.bufferAccount ?? null, isWritable: true },
-        bufferAuthority: { value: input.bufferAuthority ?? null, isWritable: false },
+        bufferAccount: { value: input.bufferAccount ?? null, isSigner: false, isWritable: true },
+        bufferAuthority: { value: input.bufferAuthority ?? null, isSigner: true, isWritable: false },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
     // Original args.
     const args = { ...input };
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('bufferAccount', accounts.bufferAccount),
@@ -129,7 +141,11 @@ export function getWriteInstruction<
         ],
         data: getWriteInstructionDataEncoder().encode(args as WriteInstructionDataArgs),
         programAddress,
-    } as WriteInstruction<TProgramAddress, TAccountBufferAccount, TAccountBufferAuthority>);
+    } as WriteInstruction<
+        TProgramAddress,
+        ResolvedInstructionAccountMeta<TAccountBufferAccount, InstructionAccountInputAddress<TAccountBufferAccount>>,
+        ResolvedInstructionAccountMeta<TAccountBufferAuthority, InstructionAccountInputAddress<TAccountBufferAuthority>>
+    >);
 }
 
 export type ParsedWriteInstruction<

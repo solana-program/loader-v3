@@ -27,7 +27,13 @@ import {
     type ReadonlyUint8Array,
     type WritableAccount,
 } from '@solana/kit';
-import { getAccountMetaFactory, type ResolvedInstructionAccount } from '@solana/kit/program-client-core';
+import {
+    getAccountMetaFactory,
+    type InstructionAccountInput,
+    type InstructionAccountInputAddress,
+    type ResolvedInstructionAccount,
+    type ResolvedInstructionAccountMeta,
+} from '@solana/kit/program-client-core';
 import { LOADER_V3_PROGRAM_ADDRESS } from '../programs';
 
 export const INITIALIZE_BUFFER_DISCRIMINATOR = 0;
@@ -74,34 +80,40 @@ export function getInitializeBufferInstructionDataCodec(): FixedSizeCodec<
 }
 
 export type InitializeBufferInput<
-    TAccountSourceAccount extends string = string,
-    TAccountBufferAuthority extends string = string,
+    TAccountSourceAccount extends InstructionAccountInput = InstructionAccountInput,
+    TAccountBufferAuthority extends InstructionAccountInput = InstructionAccountInput,
 > = {
     /** Source account to initialize. */
-    sourceAccount: Address<TAccountSourceAccount>;
+    sourceAccount: TAccountSourceAccount;
     /** Buffer authority. */
-    bufferAuthority: Address<TAccountBufferAuthority>;
+    bufferAuthority: TAccountBufferAuthority;
 };
 
 export function getInitializeBufferInstruction<
-    TAccountSourceAccount extends string,
-    TAccountBufferAuthority extends string,
+    TAccountSourceAccount extends InstructionAccountInput,
+    TAccountBufferAuthority extends InstructionAccountInput,
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: InitializeBufferInput<TAccountSourceAccount, TAccountBufferAuthority>,
     config?: { programAddress?: TProgramAddress },
-): InitializeBufferInstruction<TProgramAddress, TAccountSourceAccount, TAccountBufferAuthority> {
+): InitializeBufferInstruction<
+    TProgramAddress,
+    ResolvedInstructionAccountMeta<TAccountSourceAccount, InstructionAccountInputAddress<TAccountSourceAccount>>,
+    ResolvedInstructionAccountMeta<TAccountBufferAuthority, InstructionAccountInputAddress<TAccountBufferAuthority>>
+> {
     // Program address.
     const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
 
+    // Account meta helper.
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+
     // Original accounts.
     const originalAccounts = {
-        sourceAccount: { value: input.sourceAccount ?? null, isWritable: true },
-        bufferAuthority: { value: input.bufferAuthority ?? null, isWritable: false },
+        sourceAccount: { value: input.sourceAccount ?? null, isSigner: false, isWritable: true },
+        bufferAuthority: { value: input.bufferAuthority ?? null, isSigner: false, isWritable: false },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
     return Object.freeze({
         accounts: [
             getAccountMeta('sourceAccount', accounts.sourceAccount),
@@ -109,7 +121,11 @@ export function getInitializeBufferInstruction<
         ],
         data: getInitializeBufferInstructionDataEncoder().encode({}),
         programAddress,
-    } as InitializeBufferInstruction<TProgramAddress, TAccountSourceAccount, TAccountBufferAuthority>);
+    } as InitializeBufferInstruction<
+        TProgramAddress,
+        ResolvedInstructionAccountMeta<TAccountSourceAccount, InstructionAccountInputAddress<TAccountSourceAccount>>,
+        ResolvedInstructionAccountMeta<TAccountBufferAuthority, InstructionAccountInputAddress<TAccountBufferAuthority>>
+    >);
 }
 
 export type ParsedInitializeBufferInstruction<
