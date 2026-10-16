@@ -95,14 +95,15 @@ export function getInitializeBufferInstruction<
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: InitializeBufferInput<TAccountSourceAccount, TAccountBufferAuthority>,
-    config?: { programAddress?: TProgramAddress },
+    config?: { programAddress?: TProgramAddress | { readonly address: TProgramAddress } },
 ): InitializeBufferInstruction<
     TProgramAddress,
     ResolvedInstructionAccountMeta<TAccountSourceAccount, InstructionAccountInputAddress<TAccountSourceAccount>>,
     ResolvedInstructionAccountMeta<TAccountBufferAuthority, InstructionAccountInputAddress<TAccountBufferAuthority>>
 > {
     // Program address.
-    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddressInput = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddress = typeof programAddressInput === 'string' ? programAddressInput : programAddressInput.address;
 
     // Account meta helper.
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
