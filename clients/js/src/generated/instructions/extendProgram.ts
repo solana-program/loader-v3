@@ -121,7 +121,7 @@ export function getExtendProgramInstruction<
     TProgramAddress extends Address = typeof LOADER_V3_PROGRAM_ADDRESS,
 >(
     input: ExtendProgramInput<TAccountProgramDataAccount, TAccountProgramAccount, TAccountSystemProgram, TAccountPayer>,
-    config?: { programAddress?: TProgramAddress },
+    config?: { programAddress?: TProgramAddress | { readonly address: TProgramAddress } },
 ): ExtendProgramInstruction<
     TProgramAddress,
     ResolvedInstructionAccountMeta<
@@ -133,7 +133,8 @@ export function getExtendProgramInstruction<
     ResolvedInstructionAccountMeta<TAccountPayer, InstructionAccountInputAddress<TAccountPayer>>
 > {
     // Program address.
-    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddressInput = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddress = typeof programAddressInput === 'string' ? programAddressInput : programAddressInput.address;
 
     // Account meta helper.
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');

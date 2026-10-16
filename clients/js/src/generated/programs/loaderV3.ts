@@ -18,6 +18,7 @@ import {
     type ClientWithTransactionPlanning,
     type ClientWithTransactionSending,
     type ExtendedClient,
+    type HasAddress,
     type Instruction,
     type InstructionWithData,
     type ReadonlyUint8Array,
@@ -182,42 +183,101 @@ export type LoaderV3Plugin = {
 export type LoaderV3PluginInstructions = {
     initializeBuffer: (
         input: InitializeBufferInput,
+        config?: { programAddress?: Address | HasAddress },
     ) => ReturnType<typeof getInitializeBufferInstruction> & SelfPlanAndSendFunctions;
-    write: (input: WriteInput) => ReturnType<typeof getWriteInstruction> & SelfPlanAndSendFunctions;
+    write: (
+        input: WriteInput,
+        config?: { programAddress?: Address | HasAddress },
+    ) => ReturnType<typeof getWriteInstruction> & SelfPlanAndSendFunctions;
     deployWithMaxDataLen: (
         input: DeployWithMaxDataLenInput,
+        config?: { programAddress?: Address | HasAddress },
     ) => ReturnType<typeof getDeployWithMaxDataLenInstruction> & SelfPlanAndSendFunctions;
-    upgrade: (input: UpgradeInput) => ReturnType<typeof getUpgradeInstruction> & SelfPlanAndSendFunctions;
+    upgrade: (
+        input: UpgradeInput,
+        config?: { programAddress?: Address | HasAddress },
+    ) => ReturnType<typeof getUpgradeInstruction> & SelfPlanAndSendFunctions;
     setAuthority: (
         input: SetAuthorityInput,
+        config?: { programAddress?: Address | HasAddress },
     ) => ReturnType<typeof getSetAuthorityInstruction> & SelfPlanAndSendFunctions;
-    close: (input: CloseInput) => ReturnType<typeof getCloseInstruction> & SelfPlanAndSendFunctions;
+    close: (
+        input: CloseInput,
+        config?: { programAddress?: Address | HasAddress },
+    ) => ReturnType<typeof getCloseInstruction> & SelfPlanAndSendFunctions;
     extendProgram: (
         input: ExtendProgramInput,
+        config?: { programAddress?: Address | HasAddress },
     ) => ReturnType<typeof getExtendProgramInstruction> & SelfPlanAndSendFunctions;
     setAuthorityChecked: (
         input: SetAuthorityCheckedInput,
+        config?: { programAddress?: Address | HasAddress },
     ) => ReturnType<typeof getSetAuthorityCheckedInstruction> & SelfPlanAndSendFunctions;
 };
 
 export type LoaderV3PluginRequirements = ClientWithTransactionPlanning & ClientWithTransactionSending;
 
-export function loaderV3Program() {
+export function loaderV3Program(config: { programAddress?: Address | HasAddress } = {}) {
     return <T extends LoaderV3PluginRequirements>(client: T): ExtendedClient<T, { loaderV3: LoaderV3Plugin }> => {
         return extendClient(client, {
             loaderV3: <LoaderV3Plugin>{
                 instructions: {
-                    initializeBuffer: input =>
-                        addSelfPlanAndSendFunctions(client, getInitializeBufferInstruction(input)),
-                    write: input => addSelfPlanAndSendFunctions(client, getWriteInstruction(input)),
-                    deployWithMaxDataLen: input =>
-                        addSelfPlanAndSendFunctions(client, getDeployWithMaxDataLenInstruction(input)),
-                    upgrade: input => addSelfPlanAndSendFunctions(client, getUpgradeInstruction(input)),
-                    setAuthority: input => addSelfPlanAndSendFunctions(client, getSetAuthorityInstruction(input)),
-                    close: input => addSelfPlanAndSendFunctions(client, getCloseInstruction(input)),
-                    extendProgram: input => addSelfPlanAndSendFunctions(client, getExtendProgramInstruction(input)),
-                    setAuthorityChecked: input =>
-                        addSelfPlanAndSendFunctions(client, getSetAuthorityCheckedInstruction(input)),
+                    initializeBuffer: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getInitializeBufferInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    write: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getWriteInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    deployWithMaxDataLen: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getDeployWithMaxDataLenInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    upgrade: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getUpgradeInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    setAuthority: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getSetAuthorityInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    close: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getCloseInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    extendProgram: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getExtendProgramInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
+                    setAuthorityChecked: (input, instructionConfig) =>
+                        addSelfPlanAndSendFunctions(
+                            client,
+                            getSetAuthorityCheckedInstruction(input, {
+                                programAddress: instructionConfig?.programAddress ?? config.programAddress,
+                            }),
+                        ),
                 },
                 identifyInstruction: identifyLoaderV3Instruction,
                 parseInstruction: parseLoaderV3Instruction,

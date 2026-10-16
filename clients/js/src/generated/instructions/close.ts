@@ -118,7 +118,7 @@ export function getCloseInstruction<
         TAccountAuthority,
         TAccountProgramAccount
     >,
-    config?: { programAddress?: TProgramAddress },
+    config?: { programAddress?: TProgramAddress | { readonly address: TProgramAddress } },
 ): CloseInstruction<
     TProgramAddress,
     ResolvedInstructionAccountMeta<
@@ -133,7 +133,8 @@ export function getCloseInstruction<
     ResolvedInstructionAccountMeta<TAccountProgramAccount, InstructionAccountInputAddress<TAccountProgramAccount>>
 > {
     // Program address.
-    const programAddress = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddressInput = config?.programAddress ?? LOADER_V3_PROGRAM_ADDRESS;
+    const programAddress = typeof programAddressInput === 'string' ? programAddressInput : programAddressInput.address;
 
     // Account meta helper.
     const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
