@@ -51,10 +51,7 @@ impl Close {
             ));
         }
         if let Some(program_account) = self.program_account {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
-                program_account,
-                false,
-            ));
+            accounts.push(solana_instruction::AccountMeta::new(program_account, false));
         } else {
             accounts.push(solana_instruction::AccountMeta::new_readonly(
                 crate::LOADER_V3_ID,
@@ -100,7 +97,7 @@ impl Default for CloseInstructionData {
 ///   0. `[writable]` buffer_or_program_data_account
 ///   1. `[writable]` destination_account
 ///   2. `[signer, optional]` authority
-///   3. `[optional]` program_account
+///   3. `[writable, optional]` program_account
 #[derive(Clone, Debug, Default)]
 pub struct CloseBuilder {
     buffer_or_program_data_account: Option<solana_address::Address>,
@@ -264,7 +261,7 @@ impl<'a, 'b> CloseCpi<'a, 'b> {
             ));
         }
         if let Some(program_account) = self.program_account {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
+            accounts.push(solana_instruction::AccountMeta::new(
                 *program_account.key,
                 false,
             ));
@@ -317,7 +314,7 @@ impl<'a, 'b> CloseCpi<'a, 'b> {
 ///   0. `[writable]` buffer_or_program_data_account
 ///   1. `[writable]` destination_account
 ///   2. `[signer, optional]` authority
-///   3. `[optional]` program_account
+///   3. `[writable, optional]` program_account
 #[derive(Clone, Debug)]
 pub struct CloseCpiBuilder<'a, 'b> {
     instruction: Box<CloseCpiBuilderInstruction<'a, 'b>>,

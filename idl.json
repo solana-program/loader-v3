@@ -273,7 +273,7 @@
         },
         {
           "name": "programAccount",
-          "isMut": false,
+          "isMut": true,
           "isSigner": false,
           "isOptional": true,
           "docs": [
