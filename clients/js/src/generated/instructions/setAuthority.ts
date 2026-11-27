@@ -49,7 +49,7 @@ export type SetAuthorityInstruction<
     TProgram extends string = typeof LOADER_V3_PROGRAM_ADDRESS,
     TAccountBufferOrProgramDataAccount extends string | AccountMeta<string> = string,
     TAccountCurrentAuthority extends string | AccountMeta<string> = string,
-    TAccountNewAuthority extends string | AccountMeta<string> = string,
+    TAccountNewAuthority extends string | AccountMeta<string> | undefined = undefined,
     TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
     InstructionWithData<ReadonlyUint8Array> &
@@ -61,7 +61,9 @@ export type SetAuthorityInstruction<
             TAccountCurrentAuthority extends string
                 ? ReadonlySignerAccount<TAccountCurrentAuthority> & AccountSignerMeta<TAccountCurrentAuthority>
                 : TAccountCurrentAuthority,
-            TAccountNewAuthority extends string ? ReadonlyAccount<TAccountNewAuthority> : TAccountNewAuthority,
+            ...(TAccountNewAuthority extends undefined
+                ? []
+                : [TAccountNewAuthority extends string ? ReadonlyAccount<TAccountNewAuthority> : TAccountNewAuthority]),
             ...TRemainingAccounts,
         ]
     >;
@@ -123,7 +125,7 @@ export function getSetAuthorityInstruction<
     const programAddress = typeof programAddressInput === 'string' ? programAddressInput : programAddressInput.address;
 
     // Account meta helper.
-    const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
+    const getAccountMeta = getAccountMetaFactory(programAddress, 'omitted');
 
     // Original accounts.
     const originalAccounts = {
@@ -142,7 +144,7 @@ export function getSetAuthorityInstruction<
             getAccountMeta('bufferOrProgramDataAccount', accounts.bufferOrProgramDataAccount),
             getAccountMeta('currentAuthority', accounts.currentAuthority),
             getAccountMeta('newAuthority', accounts.newAuthority),
-        ],
+        ].filter(<T>(x: T | undefined): x is T => x !== undefined),
         data: getSetAuthorityInstructionDataEncoder().encode({}),
         programAddress,
     } as SetAuthorityInstruction<
@@ -180,10 +182,10 @@ export function parseSetAuthorityInstruction<TProgram extends string, TAccountMe
         InstructionWithAccounts<TAccountMetas> &
         InstructionWithData<ReadonlyUint8Array>,
 ): ParsedSetAuthorityInstruction<TProgram, TAccountMetas> {
-    if (instruction.accounts.length < 3) {
+    if (instruction.accounts.length < 2) {
         throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
             actualAccountMetas: instruction.accounts.length,
-            expectedAccountMetas: 3,
+            expectedAccountMetas: 2,
         });
     }
     let accountIndex = 0;
@@ -192,9 +194,11 @@ export function parseSetAuthorityInstruction<TProgram extends string, TAccountMe
         accountIndex += 1;
         return accountMeta;
     };
+    let optionalAccountsRemaining = instruction.accounts.length - 2;
     const getNextOptionalAccount = () => {
-        const accountMeta = getNextAccount();
-        return accountMeta.address === LOADER_V3_PROGRAM_ADDRESS ? undefined : accountMeta;
+        if (optionalAccountsRemaining === 0) return undefined;
+        optionalAccountsRemaining -= 1;
+        return getNextAccount();
     };
     return {
         programAddress: instruction.programAddress,

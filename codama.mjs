@@ -32,6 +32,12 @@ export default {
                 ],
             ],
         },
+        {
+            // An omitted new authority must not be replaced by the program ID,
+            // since the loader reads any third account as the new authority.
+            from: 'codama#updateInstructionsVisitor',
+            args: [{ setAuthority: { optionalAccountStrategy: 'omitted' } }],
+        },
     ],
     scripts: {
         js: {
