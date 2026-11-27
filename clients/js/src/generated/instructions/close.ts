@@ -24,7 +24,6 @@ import {
     type Instruction,
     type InstructionWithAccounts,
     type InstructionWithData,
-    type ReadonlyAccount,
     type ReadonlySignerAccount,
     type ReadonlyUint8Array,
     type WritableAccount,
@@ -65,7 +64,7 @@ export type CloseInstruction<
             TAccountAuthority extends string
                 ? ReadonlySignerAccount<TAccountAuthority> & AccountSignerMeta<TAccountAuthority>
                 : TAccountAuthority,
-            TAccountProgramAccount extends string ? ReadonlyAccount<TAccountProgramAccount> : TAccountProgramAccount,
+            TAccountProgramAccount extends string ? WritableAccount<TAccountProgramAccount> : TAccountProgramAccount,
             ...TRemainingAccounts,
         ]
     >;
@@ -148,7 +147,7 @@ export function getCloseInstruction<
         },
         destinationAccount: { value: input.destinationAccount ?? null, isSigner: false, isWritable: true },
         authority: { value: input.authority ?? null, isSigner: true, isWritable: false },
-        programAccount: { value: input.programAccount ?? null, isSigner: false, isWritable: false },
+        programAccount: { value: input.programAccount ?? null, isSigner: false, isWritable: true },
     };
     const accounts = originalAccounts as Record<keyof typeof originalAccounts, ResolvedInstructionAccount>;
 
