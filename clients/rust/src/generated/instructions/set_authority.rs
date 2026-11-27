@@ -43,11 +43,6 @@ impl SetAuthority {
                 new_authority,
                 false,
             ));
-        } else {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
-                crate::LOADER_V3_ID,
-                false,
-            ));
         }
         accounts.extend_from_slice(remaining_accounts);
         let data = SetAuthorityInstructionData::new().try_to_vec().unwrap();
@@ -222,11 +217,6 @@ impl<'a, 'b> SetAuthorityCpi<'a, 'b> {
         if let Some(new_authority) = self.new_authority {
             accounts.push(solana_instruction::AccountMeta::new_readonly(
                 *new_authority.key,
-                false,
-            ));
-        } else {
-            accounts.push(solana_instruction::AccountMeta::new_readonly(
-                crate::LOADER_V3_ID,
                 false,
             ));
         }
